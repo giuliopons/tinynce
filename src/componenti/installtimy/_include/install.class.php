@@ -166,7 +166,7 @@ class install {
 				$this->sql433();
                 $this->sql434();
 				$this->sql435();
-				
+				$this->sql436();
 			}
 
 
@@ -949,6 +949,44 @@ class install {
 		foreach ($ar as $s) { 
 			$conn->query($s) or die("Error executing query: <pre><code>$s</code></pre>.<br><br>Error:<br><br><b>".$conn->error."</b>");
 		}
-	}	
+	}
+
+
+	private function sql436() {   
+		global $conn;
+		$ar = array();
+
+		$ar[] = "INSERT IGNORE INTO `".DB_PREFIX."frw_vars` (`de_nome`, `de_value`) VALUES ('CURRENT_VERSION', '4.3.6');";
+		$ar[] = "UPDATE `".DB_PREFIX."frw_vars` set de_value='4.3.6' WHERE de_nome='CURRENT_VERSION';";
+		$ar[] = "INSERT IGNORE INTO `".DB_PREFIX."frw_vars` (`id_var`, `de_nome`, `de_value`) VALUES (NULL, 'CONST_SMTP_VERIFY_PEER', 'ON');";
+		$q = execute_scalar("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+			WHERE TABLE_SCHEMA='".DEFDBNAME."' AND TABLE_NAME = '".DB_PREFIX."frw_extrauserdata' AND COLUMN_NAME = 'fl_darkmode'");
+
+		if($q == 0) {
+			$ar[] = "ALTER TABLE `".DB_PREFIX."frw_extrauserdata` ADD `fl_darkmode` TINYINT(1) NOT NULL DEFAULT '0';";
+
+
+			$ar[] = "CREATE TABLE `".DB_PREFIX."ts_notes` (
+			`id_note` int(11) NOT NULL,
+			`de_title` varchar(255) NOT NULL DEFAULT '',
+			`de_note` text,
+			`dt_saved` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			`cd_author` int(11) NOT NULL DEFAULT '0',
+			`fl_archived` tinyint(1) NOT NULL DEFAULT '0',
+			`de_color` varchar(20) NOT NULL DEFAULT ''
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+
+
+			$ar[] = "ALTER TABLE `".DB_PREFIX."ts_notes`
+			ADD PRIMARY KEY (`id_note`),
+			ADD KEY `idx_cd_author` (`cd_author`),
+			ADD KEY `idx_dt_saved` (`dt_saved`);";
+
+		}
+		foreach ($ar as $s) { 
+			$conn->query($s) or die("Error executing query: <pre><code>$s</code></pre>.<br><br>Error:<br><br><b>".$conn->error."</b>");
+		}
+	}
+
 
 }
