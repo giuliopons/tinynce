@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+
+	<title>##TITLE##</title>
+
+	<!-- for tinymce editor -->
+	<script src="##root##src/assets/tinymce/tinymce.min.js"></script>
+
+	<script>
+	function htmlToMarkdown(html) {
+		var doc = new DOMParser().parseFromString(html, 'text/html');
+
+		function convert(node) {
+			if (node.nodeType === 3) return node.textContent;
+			if (node.nodeType !== 1) return '';
+
+			var tag = node.tagName.toLowerCase();
+			var children = '';
+			for (var i = 0; i < node.childNodes.length; i++) {
+				children += convert(node.childNodes[i]);
+			}
+
+			switch (tag) {
+				case 'h1': return '# ' + children.trim() + '\n\n';
+				case 'h2': return '## ' + children.trim() + '\n\n';
+				case 'h3': return '### ' + children.trim() + '\n\n';
+				case 'h4': return '#### ' + children.trim() + '\n\n';
+				case 'h5': return '##### ' + children.trim() + '\n\n';
+				case 'h6': return '###### ' + children.trim() + '\n\n';
+				case 'strong': case 'b': return '**' + children + '**';
+				case 'em': case 'i': return '*' + children + '*';
+				case 'del': case 's': return '~~' + children + '~~';
+				case 'code': return '`' + children + '`';
+				case 'br': return '\n';
+				case 'hr': return '\n---\n\n';
+				case 'p': return children.trim() + '\n\n';
+				case 'blockquote':
+					return children.trim().split('\n').map(function(l) { return '> ' + l; }).join('\n') + '\n\n';
+				case 'a':
+					var href = node.getAttribute('href') || '';
+					return href ? '[' + children + '](' + href + ')' : children;
+				case 'img':
+					var alt = node.getAttribute('alt') || '';
+					var src = node.getAttribute('src') || '';
+					return src ? '![' + alt + '](' + src + ')' : '';
+				case 'ul':
+					return children + '\n';
+				case 'ol':
+					return children + '\n';
+				case 'li':
+					var parent = node.parentElement ? node.parentElement.tagName.toLowerCase() : '';
+					if (parent === 'ol') {
+						var idx = 1;
+						var prev = node.previousElementSibling;
+						while (prev) { idx++; prev = prev.previousElementSibling; }
+						return idx + '. ' + children.trim() + '\n';
+					}
+					return '- ' + children.trim() + '\n';
+				case 'pre':
+					var codeEl = node.querySelector('code');
+					var codeText = codeEl ? codeEl.textContent : children;
+					return '```\n' + codeText.trim() + '\n```\n\n';
+				case 'div':
+					return children + '\n';
+				default:
+					return children;
+			}
+		}
+
+		var result = convert(doc.body);
+		return result.replace(/\n{3,}/g, '\n\n').trim();
+	}
+
+	function condividiNota() {
+		var title = document.querySelector('input[name="de_title"]').value || '';
+		var html = '';
+		if (typeof tinymce !== 'undefined' && tinymce.get('de_note')) {
+			html = tinymce.get('de_note').getContent();
+		} else {
+			var el = document.querySelector('textarea[name="de_note"]');
+			if (el) html = el.value;
+		}
+		var text = htmlToMarkdown(html);
+		var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+		if (isMobile && navigator.share) {
+			navigator.share({
+				title: title,
+				text: text
+			}).catch(function(e) {
+				if (e.name !== 'AbortError') console.error(e);
+			});
+		} else {
+			var subject = encodeURIComponent(title);
+			var body = encodeURIComponent(text);
+			window.open('mailto:?subject=' + subject + '&body=' + body);
+		}
+	}
+	</script>
+
+</head>
+<body>
+<div class="panel2">
+	<div class="titlecontainer">
+		<a href="##gestore##" class="annulla" title="{Cancel}"></a> <h1 class='title'>##TITLE##</h1> <a href="javascript:condividiNota()" class="salva icon icon-share"> {Share}</a> <a href="javascript:checkConStato()" class="salva"> {Save}</a>
+	</div>
+</div>
+<div class="corpo">
+	##STARTFORM##
+	##id##
+	##op##
+	<fieldset class='mainfieldset large'>
+		<legend>{Note details}</legend>
+		<div id='Datiprincipali'>
+			<table>
+				<tr>
+					<td>{Note title}</td><td>##de_title##</td>
+					<tr>
+						<td>{Date saved}</td><td><p class="meta"><span class="icon icon-calendar labelgray"></span> ##dt_saved##</p></td>
+					</tr>
+				</tr>
+				<tr>
+					<td>{Note text}</td><td>##de_note##</td>
+				</tr>
+				##cd_author##
+				<tr>
+					<td>{Color}</td><td>##de_color##</td>
+				</tr>
+			</table>
+		</div>
+	</fieldset>
+
+	##ENDFORM##
+</div>
+
+</body>
+</html>

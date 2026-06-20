@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+	<script>
+		function confermaDeleteCheck(theForm) {
+			confermaDeleteCheckMsg(theForm, "{Are you sure? All the hours logged for this job will be deleted}");
+		}
+		function setStato (obj,c,id) {
+			var td = $(obj).parent();
+			if(c=='0') jQuery(td).html("<span class=\"labelgrey\">...</span>");
+			if(c=='1') jQuery(td).html("<span class=\"labelgrey\">...</span>");
+			
+			url = "ajax/toggleStato.php?op="+c+"&id="+id;
+			$.ajax({	'type' : 'GET',
+				'url' : url,
+				'success' : function( response ) { 
+					if (response) { 
+						jQuery(td).html(response);
+					} },
+				'error' : function () { alert("errore"); }
+			});
+		}		
+	</script>
+
+	<style> td.col10 a.labelgreen {color:green}
+	td.col10 a.labelred {color:red}
+	</style>
+
+	<title>##TITLE##</title>
+</head>
+<body>
+
+	<div class="panel2">
+		<div class="titlecontainer">
+
+			<h1 class='title'>##TITLE##</h1>
+			
+			##bottoni1## <!-- add -->
+			
+			##bottoni2## <!-- delete -->
+			
+		</div>
+		<div class="filters">
+			<form id='filtri' method='get' name='filtri'>
+				<div class="field">
+					<label>{Client}:</label>
+					<span class="icon-filter">##combocliente##</span>
+				</div>
+				<div class="field">
+					<label>{Status}:</label>
+					<span class="icon-filter">##combostati##</span>
+				</div>
+				<div class="field">
+					<label>{Year}:</label>
+					<span class="icon-filter">##comboanno##</span>
+				</div>
+				<div class="field">
+					<label>{Find}:</label>
+					<span class="icon-search"><input type="text" name="keyword" class='find' id="keyword" value="##keyword##" onkeypress="submitonenter('filtri',event,this)"/></span>
+				</div>															
+			</form>
+		</div>
+
+	</div>
+
+
+
+	
+	
+	<div class="corpo">
+		##corpo##
+	</div>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="it" lang="it" dir="ltr">
+<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<!-- utilizzo gli stili globali -->
+		<link rel="stylesheet" type="text/css" href="../../template/stile.css">
+		<!-- includo le funzioni javascript generiche -->
+		<script language="JavaScript" src="../../template/comode.js"></script>
+		<script src="../../scriptaculous/lib/prototype.js" type="text/javascript"></script>
+		<script src="../../scriptaculous/src/scriptaculous.js" type="text/javascript"></script>
+		<script language="JavaScript" src="template/elenco.js?<?php echo rand(1,111111);?>"></script>
+	</head>
+	<body onload='checkTop();calcolatotali();'>
+		<div id='barracontainer'><div id='barra'></div><div id='tempo'></div></div>
+		<!--<div class='panel' style='display:none;'>
+			<form style='margin:0px; padding:0px;' id='filtri' method='post' name='filtri'>
+			<table>
+			<tr>
+				<td>Pannello:</td>
+			</tr>
+			<tr>
+				<td>Tag: ##combocliente##</td>
+				<td>Cerca: <img src='../tsjob/images/find.png' align='absmiddle'/> ##cercabox##</td><td>&nbsp; &nbsp; &nbsp; Strumenti: </td><td>##bottoni1##</td><td>##bottoni2##</td>
+				<td>##bottoni3##</td>
+			</tr>
+			</table>
+			</form>
+		</div>-->
+		<div id="verificabox" class='infobox' style='position:absolute;top:10px;left:30px;width:300px;display:none;font-size:12px;'></div>
+		
+		<div class='panel' style='padding:10px;'>
+				<a href="javascript:aggiungi();" id='adder'><img align='absmiddle' border='0' src='images/add.png' id='adderimg'><span id='adderspan'> aggiungi una commessa all'elenco </span></a>
+				<div id='adda' style='display:none'>
+					<form id='addaform'>
+					<table>
+						<tr>
+							<td align='right'>Job *</td>
+							<td>&nbsp;&nbsp;</td>
+							<td>##cd_job##</td>
+							<!--<td>&nbsp;&nbsp;&nbsp;</td>
+							<td align='right'>Ruolo *</td>
+							<td>&nbsp;&nbsp;</td>
+							<td>##en_ruolo##</td>-->
+							<td>&nbsp;&nbsp;&nbsp;</td>
+							<td><a href="javascript:salvatbc('##idutente##','combojob')"><img src="../../images/salva.gif" align="absmiddle" border="0"> Aggiungilo!</a></td>
+						</tr>
+					</table>
+				</form>
+				</div>
+			</div>
+		
+		<div class="corpo">
+			
+			##corpo##
+		</div>
+		<script language="javascript">
+		checkTop();
+		</script>
+	</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+
+
+	<title>##TITLE##</title>
+</head>
+<body>
+	<div class="panel2">
+	<div class="titlecontainer">
+		<a href="##gestore##" class="annulla" title="{Cancel}"></a> <h1 class='title'>##TITLE##</h1> <a href="javascript:checkConStato()" class="salva"> {Save}</a>
+	</div>
+</div>
+<div class="corpo">
+	##STARTFORM##
+	##id##
+	##op##
+
+	<fieldset class='mainfieldset'>
+		<legend>{Details of this type}</legend>
+			
+		<table>
+			<tr>
+				<td valign='top' width='150'>{Type name} *</td>
+				<td>##de_tipoora##</td>
+			</tr>
+			<tr>
+				<td>{Departments} *</td>
+				<td>##deps##
+				<p class='description'>{This type will be available only for people of this department}</p>
+				</td>
+			</tr>
+		</table>
+		</div>
+	</fieldset>
+	##ENDFORM##
+</div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+
+	<title>##TITLE##</title>
+
+    <style>
+        .show_profile20 {
+            display: none !important;
+        }
+        .profile999999 .show_profile20, 
+        .profile20 .show_profile20 {
+            display: table-row !important
+        }
+		.users label.checkbox.selected {
+			background-color: #003d99;
+			border-color: #003d99;
+		}
+    </style>
+	<script>
+			function publicPrivate(){
+				if($('#fl_private').val()==1){
+					$('#cd_reparto').parents("tr").find("td").hide();
+					$('#cd_user').parents("tr").find("td").show();
+				} else {
+					$('#cd_reparto').parents("tr").find("td").show();
+					$('#cd_user').parents("tr").find("td").hide();
+				}
+			}
+
+		jQuery(document).ready(function($) {
+
+			$('#fl_private').on("change",function(){
+				publicPrivate();
+			});
+			publicPrivate();
+
+
+		});
+	</script>
+</head>
+<body class="##classes##">
+<div class="panel2">
+	<div class="titlecontainer">
+		<a href="##gestore##" class="annulla" title="{Cancel}"></a> <h1 class='title'>##TITLE##</h1> <a href="javascript:checkConStato()" class="salva"> {Save}</a>
+	</div>
+</div>
+<div class="corpo">
+	##STARTFORM##
+	##id##
+	##op##
+	<fieldset class='mainfieldset'>
+		<legend>{List details}</legend>
+		<div id='Datiprincipali'>
+			<table>
+				<tr>
+					<td valign='top' width='150'>{List name}</td>
+					<td>##de_namelist##</td>
+				</tr>
+				<tr class="show_profile20">
+					<td valign='top' width='150'>{Private}</td>
+					<td>##fl_private##</td>
+				</tr>
+				##cd_owner##
+			</table>
+		</div>
+	</fieldset>
+	<fieldset class='mainfieldset'>
+		<legend>{Visibility}</legend>
+		<div id='Datiprincipali2'>
+			<table>
+				<tr>
+					<td>{Departments}</td>
+					<td class="deps">##deps##
+					</td>
+				</tr>
+				<tr>
+					<td>{Users}</td>
+					<td class="users">##users##
+					</td>
+				</tr>								
+			</table>
+		</div>
+	</fieldset>
+
+	##ENDFORM##
+</div>
+
+
+
+</body>
+</html>

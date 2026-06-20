@@ -1,0 +1,12 @@
+,Totale ore,,"5,77",1 = alta,Ore acquistate =,...,Fatture ...
+Tipo,Cosa,Ore,Stato,Priorità,Data consegna,Chi,Note
+New,Aggiornamento wp e plugin,"0,5",fatto,,gennaio-18-23,Giulio,
+New,Correzione riclassificazione Fortinet (anche per IML),2,fatto,,gennaio-19-23,Giulio,
+New,Aggiornamento wp e plugin,"0,25",fatto,,gennaio-26-23,Alex,
+New,cambio configurazione sitemap xml per pagine attachment,"0,25",fatto,,febbraio-24-23,Giulio,
+New,correzione configurazione GA4,1,fatto,,marzo-06-23,Giulio,segnalazione francesca
+New,check search console,"0,25",fatto,,marzo-08-23,Giulio,segnalazione chiara
+Bug,Mancata visualizzazione nuovi elementi agenda,0.25,fatto,,marzo-20-23,Alex,
+New,Aggiornamento wp e plugin,"0,5",fatto,,aprile-03-23,Alex,
+New,Aggiornamento wp e plugin,"0,5",fatto,,giugno-06-23,Alex,
+New,Aggiornamento wp e plugin,"0,5",fatto,,luglio-28-23,Alex,

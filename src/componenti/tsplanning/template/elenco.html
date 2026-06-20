@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##xy"></script>
+    <script src="template/elenco.js?v=##VER##xy"></script>
+    <script src="##root##src/template/controlloform.js?v=##VER##xy"></script>
+	<title>##TITLE##</title>
+
+    <link rel="stylesheet" type="text/css" href="template/style.css?v=##VER##xyx" />
+
+</head>
+
+<body>
+
+	<div class="panel2">
+		<div class="titlecontainer">
+			<h1 class='title'>##TITLE##</h1>
+			<a href="#" onclick="switchMode()" title="{Jobs view}" class="jobs icon-suitcase"></a>
+			<a href="#" onclick="switchMode()" title="{People view}" class="people icon-users"></a>
+            <a href="#" onclick="addItemPeopleOrJob()" title="{Add a new task}" class="icon-plus"></a>
+			<a href="#" onclick="showPrevWeek()" title="{Previous week}" class="icon-angle-left"></a>
+			<a href="#" onclick="showNextWeek()" title="{Next week}" class="icon-angle-right"></a>
+		</div>
+
+		<div class="filters">
+
+		</div>
+	</div>
+
+	<div class="corpo">
+		<div id="settimana" class="grigliacontainer">
+		##corpo##
+		</div>
+	</div>
+
+    <div class="">
+        
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,148 @@
+
+#tabella {border: .1rem solid #ccc;border-radius: .5rem;overflow: hidden;margin: 0 auto 2rem auto;float:none;width: fit-content;background: #fff;}
+#inputarea {float:left;padding: 1.5rem 1rem;background: #fff;border-radius: .5rem;margin-bottom: 1.5rem;width: 100%;}
+.expand {min-height:80vh}
+#inputarea h2 {font-size:1.5rem}
+#inputarea h3 {font-size:1.2rem}
+#settimana {background:#fff;padding: 1.5rem 1rem;border-radius: .5rem;/* min-height: 7.5rem; */overflow: hidden;}
+#cal {border-collapse:collapse;border-spacing:0px;/* border-radius: .5rem; *//* overflow: hidden; */border: 0;}
+#cal tr td {color:#000;margin:0px;border: .1rem solid #cccccc;text-align:center;width: 3.6rem;height: 3.6rem;/* box-sizing: content-box; */}
+#cal tr td.selected a:before{border:1px solid #15a546!important}
+#cal tr td:first-child {border-left:0}
+#cal tr th {text-transform: uppercase;padding: .5rem;/* font-size:12px; */font-weight:bold;margin:0px;color:#000;/* border: .1rem solid #ccc; */background-color: #fff;line-height: 2.8rem;}
+#cal tr th.d {color:#15a546;line-height: 2rem;font-size: .9rem;}
+#cal tr td a {display:block;text-decoration:none;color:#000;padding: 0 .5rem;line-height: 3.6rem;cursor:pointer}
+#cal tr td a.g { color:#ccc;}
+#cal tr td a.g.oggi {color:#111}
+#cal tr td:last-child {border-right:0}
+#cal tr:last-child td {border-bottom:0}
+
+a.full { font-weight:bold; text-decoration:none !important; background-color:#15a546; color:#fff !important;}
+a.mfull { font-weight:normal; text-decoration:none !important; background-color:#fff !important; background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAHElEQVQIW2MUXer2/3X0LkYYzcgABMiCcBmcKgDAfRwDru2FpwAAAABJRU5ErkJggg==) repeat; color:#000 !important;}
+a.prevweek {padding: 3px; color:#000; background-color:#CCCCFF; font-weight: bold;}
+#cal tr td a:hover {display:block;text-decoration:none;
+    outline:.1rem solid #000!important;}
+#cal tr th a.l {
+                float:left;
+                width:2.5rem;
+                height:2.5rem;
+                line-height:2.5rem;
+                display:inline-block;
+                color:#111;
+                border-radius:50%;
+                background-color: var(--form-bg-container);
+                }
+#cal tr th a.r {float:right; width:2.5rem; height:2.5rem;line-height:2.5rem;
+                display:inline-block; color:#111; border-radius:50%;background:var(--form-bg-container);}
+#cal tr th a.l:hover ,#cal tr th a.r:hover {text-decoration:none;background: var(--grid-even);}
+
+
+
+#notewrapper, #tipowrapper, #orewrapper, #jobwrapper, #clientewrapper {margin: 1rem 0;line-height: 2rem;}
+#notewrapper b, #tipowrapper b, #orewrapper b, #jobwrapper b, #clientewrapper b {display:block;width: 4rem;float:left;}
+/* #save input[type=button], */
+#notewrapper input[type=button] {margin-top: 1rem;}
+input#ore {max-width:20%}
+select#ore {margin-right:1rem}
+#tipoora {max-width:calc( 79% - 4rem);}
+#loading {position:fixed;top: 0;left: 0;width: 100vw;height: 100vh;font-size: 3rem;z-index: 9999;background: #fff1;/* display: flex!important; *//* justify-content: center; *//* align-items: center; */text-align: center;line-height: 100vh;color: #777;}
+#loading.small {top: auto;left: auto;bottom:1rem;
+                right:1rem;width: 2rem;height: 2rem;
+    font-size: 2rem;z-index: 9999;background: transparent;
+                text-align: center;line-height: 2rem;color: #777;}
+.contract #loading.small {right:20rem}
+#mostraweek { font-size:12px; font-weight:normal; }
+
+.highlightedRow { background-color: #f9f9f9; } 
+table.timesheet{border-collapse:collapse;margin-bottom: 1rem;}
+table.timesheet td {box-sizing:border-box;/* padding:5px; */text-align:center;/* min-height: 80px; */border:1px solid #CCCCCC;line-height: 6rem;height: 6rem;position:relative;width: 9rem;min-width: 5rem;}
+table.timesheet td a {/* padding:4px; *//* padding-left:10px; *//* padding-right:10px; *//* font-size:15px; *//* min-height: 45px; *//* display: inline-block; *//* display: flex; *//* flex: 0 0 5rem; */display: block;width: 100%;height: 6rem;line-height: 6rem;position: absolute;top: 0;left: 0;/* min-width: 9rem; */z-index:0}
+table.timesheet td a.nota {position:absolute;top: .5rem;right: .5rem;width: 1rem;height:1rem;line-height:1rem;z-index:1;font-size: 0.9rem;left: auto;/* min-width: 1rem; */}
+table.timesheet th {padding:.5rem}
+table.timesheet td.sel {
+    background: #d9f5e2
+}
+table.timesheet input { 
+    position:relative;z-index:1;
+    width:80%!important;
+    background:transparent;
+    text-align:center; border:0;margin:0;padding:0;line-height:1em;font-size:1rem}
+#cal tr td.selected a,
+.oggi {position:relative;}
+#cal tr td.selected a:before,
+.oggi:before {position:absolute;top:0;left:0;content:'';width:100%;height:100%;border: 2px solid #333;box-sizing:border-box;z-index: 0;}
+
+th.oggi {border-top-left-radius: .5rem;border-top-right-radius: .5rem;/* border-color: #111; *//* border-width: .1rem; */}
+.weekend { background-color:#f9f9f9; color:#ff3333 !important; }
+.weekend a { color: #ff3333; }
+th.weekend {border-top-left-radius: .5rem;border-top-right-radius: .5rem;}
+.notina {position:absolute;z-index:10;width: 11rem;height: 6rem;top:.5rem;left:.5rem;
+         box-shadow:.5rem .5rem .5rem #9999;padding:.5rem;font-size:.9rem;
+        border:1px solid #111;font-style: italic;background-color: #fefefe;line-height: 1rem;text-align: left;}
+.notina textarea {resize: none;
+    border:0;font-style:italic;
+    position: absolute;top: 0;left: 0;
+    width: 100%;padding:.5rem;
+    height: 100%;
+    line-height: 1rem;
+    font-size: .9rem;
+    background: #fefefe;
+    }
+th { font-size:1.2rem; text-align:center; font-weight:bold; }
+th.jobs {text-align:right;padding-right: .5rem;font-weight:normal;width: 20rem;border: .1rem solid #ccc;vertical-align:middle;line-height: 1.5em;}
+th.jobs0 {text-align:left;padding-right: 2rem;font-weight:bold;width:100px;border-bottom:.1rem dotted #ccc;vertical-align: top;white-space: nowrap;}
+th.jobs.last {border: 0;}
+th.jobs span.name {background-color:#15a546;color:#fff;padding:0 3px;vertical-align: middle;}
+th.jobs span.cliente {display:block;font-size:1rem}
+th.jobs span.desc {font-size:1rem;color:#ccc;display: block;}
+th.jobs span.code {
+    display:inline-block;
+    padding: 0 .5rem;
+    border:.1rem solid #ccc;
+    height:1rem;
+    line-height: 1rem;
+    color: #aaa;
+    font-size:.9rem;
+    vertical-align: middle;
+    }
+th.titolone { font-size:2rem; text-align:center; font-weight:bold; padding:1rem; }
+td.tot { border:0px !important; }
+#titolonome {position:absolute;top:0;right:0;padding:1rem;font-size:2rem;font-weight:bold;line-height:2rem;}
+a:focus {outline-style:none}
+
+#legenda {position:fixed;bottom:0;left:1rem;width:100%;margin-top:1rem;font-size:1rem;background: rgba(255,255,255,.7);display: none;}
+#legenda div { margin:1rem; display:inline-block;font-size:1rem}
+#l_oggi { background-color:#fff !important; border:1px solid #000; padding:.2rem; }
+#l_parz { background-color:#fff !important; background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAHElEQVQIW2MUXer2/3X0LkYYzcgABMiCcBmcKgDAfRwDru2FpwAAAABJRU5ErkJggg==) repeat; color:#000 !important;  padding:.2rem; border:.1rem solid #99CCCC;}
+#l_8ore { font-weight:bold;background-color:#15a546; color:#fff !important;  padding:.2rem }
+#l_week { background-color:#F9f9f9; color:#ff3333;   padding:.2rem }
+
+a.scadd-title {float:left;display:block;width: 5rem;height: 5rem;margin: 0 1rem 0 0;line-height: 2rem;border: .1rem solid #ccc;text-align:center;font-size: 2rem;padding: .5rem 0 0 0;text-decoration:none}
+a.scadd-title:hover {background-color:#eee}
+a.scadd-title span {display:block;font-size:9px;text-transform:uppercase}
+a.scadd {text-decoration:none;display:none;width: 10rem;height: 5rem;border: .1rem solid #ccc;float:left;margin: 0 1rem 1rem 0;padding: .5rem;text-align:center;font-size: 1rem;font-weight: bold;}
+a.scadd span {font-size: 10px;display:block;line-height: 15px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font-weight: normal;}
+a.scadd span.tipo {color: #aaa}
+a.scadd:hover {background-color:#eee}
+
+.corpo {margin-bottom:5rem}  
+
+@media screen and (min-width:768px) {
+    #tabella {float:left;margin-right: 3rem;margin-bottom: 3rem;}    
+    #inputarea {width: calc(100% - 24.3rem);/* min-width:50rem; */height: 25.5rem;}
+    /* #save input[type=button], */
+    #notewrapper input[type=button] {
+        margin-left: 7rem;}
+     .corpo {margin-bottom:2rem}   
+    #notewrapper b, #tipowrapper b, #orewrapper b, #jobwrapper b, #clientewrapper b {width: 7rem}
+
+
+    #cal tr td {width: 3rem;height: 3rem;}
+    #cal tr td a {line-height: 3rem;}
+    #cal tr th {line-height: 3rem;}
+    #cal tr th.d {line-height: 2rem;}
+
+
+    
+}
+

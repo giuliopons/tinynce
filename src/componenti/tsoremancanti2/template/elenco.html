@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+
+	<title>##TITLE##</title>
+
+	<style>
+        td.n, th.n {
+            text-align:right!important;
+        }
+
+
+		td.neg {color:red}
+	</style>
+</head>
+<body>
+
+
+	<div class="panel2">
+		<div class="titlecontainer">
+
+			<h1 class='title'>##TITLE##</h1>
+			
+		</div>
+
+		<div class="filters">
+
+			##STARTFORM##
+            ##op##
+               
+                    <div class="field">
+                        <label>{From}:</label>
+                        <span class="icon-filter">##dal##</span>
+                    </div>
+                    
+                                   
+                
+
+                <div class="field">
+					<label>{Person}:</label>
+					<span class="icon-filter">##persone##</span>
+				</div>
+            
+                <div class="field">
+					<label>&nbsp;</label>
+					<span>##SUBMIT##</span>
+				</div>
+				
+				##ENDFORM##
+            
+		</div>
+	</div>
+
+	<div class="corpo">
+		##corpo##
+	</div>
+
+</body>
+</html>

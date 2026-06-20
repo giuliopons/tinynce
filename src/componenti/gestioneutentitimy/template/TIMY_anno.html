@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+
+	<title>##TITLE##</title>
+
+	<script src="../gestioneutenti/template/dettaglio.js?v=##VER##"></script>
+
+	<style>
+		.webmaster #companyfieldset, .admin #companyfieldset {display:none}
+	</style>
+
+</head>
+<body class="##bodyclass##">
+<div class="panel2">
+	<div class="titlecontainer">
+		<a href="##gestore##" class="annulla" title="{Cancel}"></a> <h1 class='title'>##TITLE##</h1> <a href="javascript:checkConStato()" class="salva"> {Save}</a>
+	</div>
+</div>
+
+
+<div class="corpo">
+	##STARTFORM##
+	##id##
+	##op##
+	<fieldset class='mainfieldset'>
+		<legend>{User}: ##NOMEUTENTE##</legend>
+        <p class="description">{Define the cost for this employee for a specific year}<br><br></p>
+		<div id='Datiprincipali'>
+		<table>
+			<tr>
+				<td class="small">{Year}*</td>
+				<td class="small">##nu_anno##</td>
+			</tr>
+			<tr>
+				<td class="small">{Cost}</td>
+				<td class="small">##nu_cost## ##MONEY##</td>
+			</tr>
+		</table>
+		</div>
+	</fieldset>
+
+	##ENDFORM##
+</div>
+
+
+
+</body>
+</html>

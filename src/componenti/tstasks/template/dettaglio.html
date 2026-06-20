@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+
+	<title>##TITLE##</title>
+
+	<!-- for viewer lightbox -->
+	<script src="##root##src/assets/viewer/viewer.min.js"></script>
+	<link rel="stylesheet" href="##root##src/assets/viewer/viewer.min.css"/>
+	<!-- -->
+
+	<!-- for tinymce editor -->
+	<script src="##root##src/assets/tinymce/tinymce.min.js"></script>
+
+
+</head>
+<body>
+<div class="panel2">
+	<div class="titlecontainer">
+		<a href="##gestore##" class="annulla" title="{Cancel}"></a> <h1 class='title'>##TITLE##</h1> <a href="javascript:checkConStato()" class="salva"> {Save}</a>
+	</div>
+</div>
+<div class="corpo">
+	##STARTFORM##
+	##id##
+	##op##
+	<fieldset class='mainfieldset'>
+		<legend>{List details}</legend>
+		<div id='Datiprincipali'>
+			<table>
+				<tr>
+					<td valign='top' width='200'>{Task name}</td>
+					<td>##de_taskname##</td>
+				</tr>
+				<tr>
+					<td>{List}</td>
+					<td>##cd_list##</td>
+				</tr>	
+				<tr>
+					<td>{Color}</td>
+					<td>##de_color##</td>
+				</tr>	
+				<tr>
+					<td valign='top'>{Link}</td>
+					<td>##de_link##</td>
+				</tr>
+				<tr>
+					<td valign='top'>{Text}</td>
+					<td>##de_text##</td>
+				</tr>
+				<tr>
+					<td valign='top'>{Media}</td>
+					<td>
+						##file## 
+					</td>
+				</tr>				
+				<tr>
+					<td valign='top'>{Status}</td>
+					<td>##en_status##</td>
+				</tr>
+				<tr>
+					<td valign='top'>{Expiration}</td>
+					<td>##dt_expiration##</td>
+				</tr>                
+				<tr>
+					<td valign='top'>{Open date and time}</td>
+					<td>##dt_opened##</td>
+				</tr>
+				<tr>
+					<td valign='top'>{Close date and time}</td>
+					<td>##dt_closed##</td>
+				</tr>
+				##cd_author##
+			</table>
+		</div>
+	</fieldset>
+
+	##ENDFORM##
+</div>
+
+
+
+</body>
+</html>

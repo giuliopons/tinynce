@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+
+	<title>##TITLE##</title>
+
+	<link rel="stylesheet" type="text/css" href="template/addcal.css?v=##VER##">
+	
+	<script src="template/addcal.js?v=##VER##"></script>
+	<script src="template/elenco.js?v=##VER##"></script>
+	<script>
+		var idutente = ##idutente##;
+
+		$(document).ready(function() {
+			if('##OPENAI##' != 'yes') {
+				$('.titlecontainer a').hide();
+			}
+		})
+	</script>
+
+
+
+</head>
+
+<body>
+
+	<div class="panel2">
+		<div class="titlecontainer">
+
+			<h1 class='title'>##TITLE##</h1>
+			<a href="index.php?op=chat" title="{Chat mode}" class="icon-comment"></a>
+			<a href="index.php?op=calendar" title="{Calendar mode}" class="disabled icon-calendar-empty"></a>
+
+		</div>
+		<div class="filters">
+
+		</div>
+
+	</div>
+	<div class="corpo">
+		<div id='tabella'>##corpo##</div>
+		<div id='inputarea'>{Select a day from the calendar}</div>
+		<div id='loading' style='display:none'><span class='icon-spin5 animate-spin'></span></div>
+		<br style='clear:both'/>
+		<div id='settimana' class="grigliacontainer"></div>
+		<div id='legenda'>
+			<b>{Legend}:</b> 
+			<div><span id='l_oggi'>01</span> {Today}</div>
+			<div><span id='l_parz'>01</span> {Day with partial hours}</div>
+			<div><span id='l_8ore'>01</span> {Day completed}</div>
+			<div><span id='l_week'>01</span> {Weekend}</div>
+		</div>
+	</div>
+
+</body>
+</html>

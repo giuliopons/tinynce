@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+	<script src="template/elenco.js"></script>
+	<title>##TITLE##</title>
+    <style>
+        td.n, th.n {
+            text-align:right!important;
+        }
+
+		.report_print {display:none}
+
+
+		@media print {
+			body,html {width:100%;height:100%;background:transparent}
+			.panel2, a.btn, #mainmenucontainer,#mobiletoggle {display:none;}
+			.corpo, .grigliacontainer {width:100%!important}
+			div.grigliacontainer {overflow-x:unset!important}
+			.report_print {display:block;padding-bottom:1rem}
+		}
+
+    </style>
+
+
+</head>
+
+<body>
+
+	<div class="panel2">
+		<div class="titlecontainer">
+
+			<h1 class='title'>##TITLE##</h1>
+			
+		</div>
+
+		<div class="filters">
+
+			##STARTFORM##
+            ##op##
+               
+                    <div class="field">
+                        <label>{From}:</label>
+                        <span>##dal##</span>
+                    </div>
+                    <div class="field">
+                        <label>{To}:</label>
+                        <span>##al##</span>
+                    </div>
+                                   
+                
+				<div class="field">
+					<label>{Client}:</label>
+					<span class="icon-filter">##cliente##</span>
+				</div>
+
+                <div class="field">
+					<label>{Job}:</label>
+					<span class="icon-filter">##job##</span>
+				</div>
+
+				<div class="field empty" style="flex:1 1 100%;"></div>
+
+
+                <div class="field">
+					<label>{Department}:</label>
+					<span class="icon-filter">##reparto##</span>
+				</div>
+
+                <div class="field">
+					<label>{Person}:</label>
+					<span class="icon-filter">##persone##</span>
+				</div>
+
+                <div class="field">
+					<label>{Group by}:</label>
+					<span class="icon-filter">##gruppo##</span>
+				</div>
+            
+                <div class="field">
+					<label>&nbsp;</label>
+					<span><a href='#' id='submit' class='btn'>{Search}</a></span>
+				</div>
+																	
+			##ENDFORM##
+            
+		</div>
+	</div>
+
+	<div class="corpo">
+		##corpo##
+	</div>
+
+</body>
+</html>

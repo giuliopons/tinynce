@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+
+	<title>##TITLE##</title>
+
+	<script src="../gestioneutenti/template/dettaglio.js?v=##VER##"></script>
+
+	<style>
+		.webmaster #companyfieldset, .admin #companyfieldset {display:none}
+	</style>
+
+	<script>
+		function deleteAnno(e,obj,$anno,$user) {
+			e.preventDefault();
+			gconfirm("{Do you confirm?}", function(){
+				jQuery.post( "ajax/deleteAnno.php", { anno: $anno, user: $user }, function(data) {
+					if (data) {
+						if(data == 1) {
+							$(obj).parents("tr").remove();
+							gridOddEven();
+						}
+					}
+				})
+			});
+		}
+	</script>
+
+</head>
+<body class="##bodyclass##">
+<div class="panel2">
+	<div class="titlecontainer">
+		<a href="##gestore##" class="annulla" title="{Cancel}"></a> <h1 class='title'>##TITLE##</h1> <a href="javascript:checkConStato()" class="salva"> {Save}</a>
+	</div>
+</div>
+
+
+<div class="corpo">
+	##STARTFORM##
+	##id##
+	##strong_password##
+	##op##
+	<fieldset class='mainfieldset'>
+		<legend>{User details}</legend>
+		<div id='Datiprincipali'>
+		<table>
+			<tr>
+				<td class="small">{Username}*</td>
+				<td class="small"><b>##username##</b> <!-- ##dt_datacreazione## --></td>
+			</tr>
+			<tr>
+				<td class="small">{Password}#aster#</td>
+				<td class="small">##password## #asterinstruction#</td>
+			</tr>
+			<tr>
+				<td>{Name}*</td>
+				<td>##nome##</td>
+			</tr>
+			<tr>
+				<td>{Surname}*</td>
+				<td>##cognome##</td>
+			</tr>
+			<tr>
+				<td>{Profile}*</td>
+				<td>##cd_profilo##</td>
+			</tr>
+			<tr>
+				<td>{Email address}</td>
+				<td>##de_email##</td>
+			</tr>
+			<tr>
+				<td class="small">{Active user}</td>
+				<td class="small"><div>##fl_attivo##</div></td>
+			</tr>
+			<tr>
+				<td>{Shortname}</td>
+				<td>##de_sigla##</td>
+			</tr>
+			<tr>
+				<td>{Department}*</td>
+				<td>##cd_reparto##</td>
+			</tr>
+			<tr>
+				<td>{Hour cost}*</td>
+				<td>##nu_costo##&euro;</td>
+			</tr>
+			<tr>
+				<td>{Weekly hours}*</td>
+				<td>##nu_oresettimanali##</td>
+			</tr>			
+		</table>
+		</div>
+	</fieldset>
+
+
+
+	<fieldset class='mainfieldset' id="functionalities">
+		<legend>{Hour cost by year}</legend>
+		<div class='aggiuntivi'>
+            
+             ##elencoanni##
+            
+		</div>
+	</fieldset>
+
+	##ENDFORM##
+</div>
+
+
+
+</body>
+</html>

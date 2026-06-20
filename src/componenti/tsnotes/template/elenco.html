@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+	<script src="./template/elenco.html.js?v=##VER##"></script>
+	<title>##TITLE##</title>
+
+	<style>
+		.col2 {
+			font-size: .8em;
+			color:#aaa;
+		}
+		@media only screen and (min-width: 768px) {
+			.panel2 .filters form .field select,
+			.panel2 .filters form .field input {min-width:10rem}
+		}
+		#container_ts_notes .griglia tbody td {
+			background-color: transparent;
+		}
+		#container_ts_notes .griglia tbody tr {
+			position: relative;
+
+		}
+		#container_ts_notes .griglia tbody tr::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background-color: var(--note-color, transparent);
+			opacity: 0.2;
+			pointer-events: none;
+			z-index: 0;
+		}
+		#container_ts_notes .griglia tbody tr > td {
+			position: relative;
+			z-index: 1;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div class="panel2">
+		<div class="titlecontainer">
+
+			<h1 class='title'>##TITLE##</h1>
+			
+			##bottoni1## <!-- add -->
+
+			##bottoni2## <!-- delete -->
+
+			##bottoni3## <!-- archive -->
+
+		</div>
+		<div class="filters">
+			<form id='filtri' method='get' name='filtri'>
+				<div class="field">
+					<label>{Archive}:</label>
+					<span class="icon-filter">##combotipo##</span>
+				</div>
+				<div class="field">
+					<label>{Find note}:</label>
+					<span class="icon-search"><input type="text" name="keyword" class='find' id="keyword" value="##keyword##" onkeypress="submitonenter('filtri',event,this)"/></span>
+				</div>
+			</form>
+		</div>
+
+	</div>
+
+	<div class="corpo">
+		##corpo##
+	</div>
+
+</body>
+</html>

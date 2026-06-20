@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+
+	<script src="template/elenco.js?v=##VER##"></script>
+
+	<title>##TITLE##</title>
+
+	<style>
+		#report td.n {
+			text-align:right;
+		}
+
+		td.neg {color:red}
+	</style>
+</head>
+<body>
+
+
+	<div class="panel2">
+		<div class="titlecontainer">
+
+			<a href="../tsore2/index.php" class="annulla" title="{Cancel}"></a> <h1 class='title'>##TITLE##</h1>
+			
+		</div>
+
+		<div class="filters">
+
+			##STARTFORM##
+            ##op##
+			##persone##
+            
+			
+
+                    <div class="field">
+                        <label>{From}:</label>
+                        <span>##dal##</span>
+                    </div>
+                    
+					<div class="field">
+                        <label>{To}:</label>
+                        <span>##al##</span>
+                    </div>      
+
+					<div class="field">
+                        <label>{Client}:</label>
+                        <span class="icon-filter">##cliente##</span>
+                    </div>  
+
+					<div class="field">
+                        <label>{Job}:</label>
+                        <span class="icon-filter">##job##</span>
+                    </div>  
+
+                <div class="field">
+					<label>&nbsp;</label>
+					<span>##SUBMIT##</span>
+				</div>
+				
+				##ENDFORM##
+            
+		</div>
+	</div>
+
+	<div class="corpo">
+		<div class="grigliacontainer">##corpo##</div>
+	</div>
+
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,42 @@
+/* GENERIC */
+:root {
+	--main-bg-color: #f3f6f9;
+	--main-fg-color: #111111;
+	--panel-bg-color: #ffffff;
+	--grid-odd: #ffffff;
+	--grid-even: #003f620a;
+	--grid-head: #d5d7d8;
+
+	--menu-top-bg: #006703;
+	--menu-fg: #ffffff;
+	--menu-top0-bg: #419d02;
+	--menu-top2-bg: #1c4505;
+	--menu-top-border: #ffffff22;
+	--menu-container-bg: #47474747;
+
+	--form-highlight-bg:#9bb9ca66;
+	--form-highlight-fg:#000000;
+	--form-border:#777777;
+	--form-fg: #444444;
+	--form-bg-container: #dedede78;
+
+	--alert-evidence: #ff2727;
+
+}
+
+/*.icon-help-circled span i.icon-cancel:before,
+.icon-help-circled span { color:var(--form-highlight-fg); }*/
+
+a.linkmenu.TSORE2:before {content: '\e82d';}
+a.linkmenu.TSOREMANCANTI:before {content: '\e82e';position:relative;left:-2px}
+a.linkmenu.TSREPARTI:before {content: '\e81d';}
+a.linkmenu.TSJOB:before {content: '\e831';}
+a.linkmenu.TSREPORT:before, a.linkmenu.TSCHEHOFATTO:before {content: '\e820';}
+a.linkmenu.TSOREMANCANTI:before {content: '\e82e';}
+a.linkmenu.TSCLIENTI:before {content: '\e82a';}
+a.linkmenu.TSTIPIORE:before {content: '\f0c5';}
+
+
+
+
+

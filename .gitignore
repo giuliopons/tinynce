@@ -1,0 +1,30 @@
+# ----------------------------------------------
+# COMPONENTI DEL CORE CHE NON TRACCIO SU QUESTA REPO
+# non devono essere modificati qui, ma nel framework core
+# e poi vengono copiati qui con copiacore.php
+# ----------------------------------------------
+
+src/_include/
+src/icons/
+src/images/
+src/template/
+src/lib/
+src/assets/
+src/vendor/
+src/index.php
+src/login.php
+src/logout.php
+src/resetpassword.php
+src/componenti/frw*/
+src/componenti/gestioneutenti/
+src/componenti/installbase/
+src/componenti/debugger/
+src/componenti/php-mime-mail-parser/
+data/lang/base.en.lang.txt
+data/lang/base.it.lang.txt
+data/dbimg/
+pons-settings.php
+pons-settings.php.example
+deploy.php
+copiacore.php
+deploy.env

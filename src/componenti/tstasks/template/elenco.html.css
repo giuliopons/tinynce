@@ -1,0 +1,45 @@
+td a.label { width:6rem}
+
+#container_ts_tasks .griglia tr {display:flex;flex-direction:column;position:relative}
+#container_ts_tasks .griglia td {padding-left:3rem;}
+#container_ts_tasks .griglia td:empty {display:none}
+#container_ts_tasks .griglia td.chex {position: absolute;top: 0;padding-left: 1rem;left: 0;}
+#container_ts_tasks .griglia td {max-width:100%;flex:0 0 auto;white-space:break-spaces;}
+#container_ts_tasks .griglia .initial th:nth-child(3){ display:none}
+#container_ts_tasks .griglia .initial {flex-direction:row;}
+#container_ts_tasks .griglia .initial th:nth-child(2){flex:1 0 100%}
+#container_ts_tasks .griglia td .piccolo {font-size:.7em;display:block;font-weight:600}
+#container_ts_tasks .griglia td .piccolo.red {color:red}
+#container_ts_tasks .griglia td.col4 {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+@media only screen and (min-width: 768px) {
+    #container_ts_tasks .griglia tr {display:table-row;position:static}
+    #container_ts_tasks .griglia td {padding-left:1rem}
+    #container_ts_tasks .griglia td:empty {display:table-cell}
+    #container_ts_tasks .griglia td.chex {position: static}
+    #container_ts_tasks .griglia .initial th:nth-child(3){ display:table-cell}
+    #container_ts_tasks .griglia td.col4 {
+        position: static;
+    }
+
+}
+@media only screen and (max-width: 767px) {
+    #container_ts_tasks .griglia td.col4,#container_ts_tasks .griglia td.chex {background: transparent;}
+    #container_ts_tasks .griglia td {font-size:1.1rem}
+}
+.dot_high,.dot_grey,
+.dot_low {
+    display:inline-block;
+    border-radius:50%;
+    width:1.5rem;
+    height:1.5rem;
+    border:.1rem solid #ddd;
+    vertical-align:middle;
+    background-color:transparent;
+}
+.dot_high {border-color:red;background-color:red;	}
+.dot_grey {border-color:grey;background-color:transparent;	}

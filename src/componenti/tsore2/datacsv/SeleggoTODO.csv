@@ -1,0 +1,13 @@
+,Totale ore,,"9,00",1 = alta,Ore acquistate =,24,Rif. Fattura tbd
+Tipo,Cosa,Ore,Stato,Priorità,Data consegna,Chi,Note
+New,"check funzionamento velocità, installazione monitor","0,75",fatto,,marzo-17-23,Giulio,
+New,correzione bug nella pagina editor utente di wordpress nelle select materia/classe,"0,5",fatto,,aprile-11-23,Giulio,
+New,correzione bug salvataggio utente admin in back office wp (perdeva i libri),"0,5",fatto,,aprile-11-23,Giulio,
+New,estrazione utenti seleggo friuli associati a scuole friuli,"0,25",fatto,,aprile-26-23,Giulio,fatto a mano da excel con file di Estrazione utenti csv
+New,impaginazione power point x rimini,2,fatto,,maggio-15-23,Roberta,
+New,"controllo funzionamento app, risoluzione bug utente che non riesce a vedere libro",1,fatto,,maggio-17-23,Giulio,c'era un errore nella chiamata ajax dalla app
+New,installazione e test plugin per loggarsi con utente altro,1,fatto,,maggio-18-23,Giulio,
+New,aggiornamento sito wp e plugin,1,fatto,,maggio-18-23,Giulio,correzione permessi file e cartelle
+New,Aggiornamento wp e plugin,"0,5",fatto,,luglio-28-23,Alex,
+New,Correzione bug nella visualizzazione del totale Pag lette nell'elenco degli utenti,1,fatto,,agosto-03-23,Giulio,
+New,check dizionario zanichelli e modifiche labels,"0,5",fatto,,agosto-09-23,Giulio,

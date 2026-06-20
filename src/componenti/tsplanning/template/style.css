@@ -1,0 +1,295 @@
+
+#confirmBox td {
+    padding-bottom:10px;
+}
+
+#settimana {background:#fff;padding: 1.5rem 1rem;border-radius: .5rem;/* min-height: 7.5rem; */overflow: hidden;}
+#settimana * {box-sizing:border-box}
+
+.people,
+.job {
+    display:flex;
+    background:#fff;
+    margin-bottom:0;
+}
+
+.panel2 a {border:0}
+
+@media only screen and (max-width: 768px) {
+    .job, .people {width:400vw;}
+    .panel2 h1 {display:none}
+}
+
+.people:first-child,
+.job:first-child {
+    border-top:1px solid #ddd;
+    margin-top:4rem
+}
+
+.peopledetails,
+.jobdetails {
+    flex:1 1 11.1%;
+    border-right:1px solid #ddd;
+    border-left:1px solid #ddd;
+    border-bottom:1px solid #ddd;
+    
+    text-align:center;align-items:center;
+    justify-content:center;
+    display:flex;
+    flex-direction:column;
+    cursor:pointer;
+    overflow:hidden;
+}
+
+.jobdetails .name {
+    font-size:.8rem;
+}
+
+
+.todo, .todo-container, .days-container, .user-container {
+    display:flex;
+    flex:1 1 100%;
+}
+.user-container {
+    align-items:flex-start;
+    justify-content:center;
+    border-bottom:1px solid #ddd;
+    /* min-height:2rem; */ /* 4hours slot */
+    /* max-height:4rem; */ /* 8hours slot */
+}
+
+.todo-container, .days-container {
+    flex-direction:column
+}
+
+.tododetails {
+    width:12%;
+    flex:1 1 auto;
+    border-bottom:1px solid #ddd;
+    border-right:1px solid #ddd;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-sizing:content-box;
+    height:100%;
+    position:relative;
+}
+.todolabel {
+    text-align:center;
+    display:flex;
+    cursor:pointer;
+    flex: 0 1 100%;
+    width:100%;
+    height:100%;
+    justify-content:center;
+    align-items:center;
+}
+.todolabel a {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+.todolabel .day {
+    display: flex!important;
+    align-items:center;
+    height:4rem;
+    justify-content:center;    
+}
+ .day-user {
+     flex:1 1 14.3%;
+     position:relative;
+     text-align:center;
+     border-right:1px solid #ddd;
+     height:100%;
+     
+ }
+.day-user .nome {
+    box-sizing:content-box;
+    cursor:pointer;
+    height:100%;
+    font-size:.9rem;
+    overflow:hidden;
+    padding:.5rem 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:3rem;
+}
+.day-user .nome:not(:empty) {
+    background-color:#eee;
+}
+.day-user .nome:hover {
+    background:#eee;
+}
+/*.day-user .nome[data-hours="4"] {
+    height:3rem;line-height:1.5rem;
+    background-color:#eee;
+    
+}
+.day-user .nome[data-hours="8"] {
+    height:6rem;line-height:1.5rem;
+    background-color:#eee;
+}*/
+
+.todolabel span.day,
+.people .todo .user-container span.day,
+.job .todo .user-container span.day {
+    display:none;
+}
+
+.job:first-child .todolabel span.day,
+.people:first-child .todo:first-child .user-container:first-child span.day,
+.job:first-child .todo:first-child .user-container:first-child span.day {
+    display:block;
+    position:absolute;
+    text-align:center;
+    top:-4rem;
+    width:100%;
+    font-size:1.2rem;font-weight:bold;
+    cursor:pointer
+}
+.todo .user-container .day-user:nth-last-child(2),
+.todo .user-container .day-user:nth-last-child(1) {   
+    color:#ff3333;
+    background:#fafafa
+}
+
+
+
+#confirmBox #thirdBtn{
+    color: var(--main-fg-color)!important;
+	background-color: var(--form-bg-container);
+    float:right;
+    margin-right:1rem;
+}
+
+.day-is-5, .day-is-6 {display:none}
+
+.job, .people {border-bottom:.2rem solid #aaa}
+
+.people .nome {z-index:9;position: relative;}
+.people .day-user .nome[data-hours="4"] {
+    height:3rem;line-height:1.5rem;
+}
+.people .day-user {height:6rem;}
+.people .day-user .nome[data-hours="8"] {
+    height:6rem;line-height:1.5rem;
+}
+.people .todo-container {position:relative;
+    height:6rem;
+}
+.people .todo-container .todo {
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+}
+.people .count2 {
+    position:absolute;
+    width:100%;
+    top:3rem;
+}
+
+.people .count1:empty, .people .count2:empty {
+    height:3rem;
+}
+.people .count1:empty{
+    height:3rem;
+    
+}
+/* .people .count2:empty{
+    top:0;
+} */
+
+/* comments */
+.comment {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 100;
+    cursor: pointer;
+    width: 1.7rem;
+    height: 1.2rem;
+    line-height: 1.2rem
+}
+.count2 + .comment {top:3rem}
+#commentContainer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 101;
+    width: 11rem;
+    height: 6rem;
+    line-height: 1rem;
+    border: .1rem solid #555;
+    text-align: left;
+    box-shadow:.5rem .5rem .5rem #9999;
+    padding:.5rem;
+    font-size:.9rem;
+    border:1px solid #111;
+    font-style: italic;
+    background-color: #fefefe;
+}
+#commentContainer textarea {resize: none;
+    border:0;font-style:italic;
+    position: absolute;top: 0;left: 0;
+    width: 100%;padding:.5rem;
+    height: 100%;
+    line-height: 1rem;
+    font-size: .9rem;
+    background: #fefefe;
+}
+
+
+@media only screen and (min-width: 769px) {
+
+
+    .job.fixed:first-child .todolabel span.day, .job.fixed:first-child .todo:first-child .user-container:first-child span.day {position:fixed;top:5rem;width:15.6%!important;background:#fff;z-index:10;height:4rem;}
+    .job.fixed:first-child .todolabel span.day {width:9.35%!important}
+    .job.fixed .day-is-0 .day {left:20.55%;}
+    .job.fixed .day-is-1 .day {left:36.16%;}
+    .job.fixed .day-is-2 .day {left:51.80%;}
+    .job.fixed .day-is-3 .day {left:67.44%;}
+    .job.fixed .day-is-4 .day {left:83.05%}
+    .job.fixed .day-is-5 .day {left:85%}
+    .job.fixed .day-is-6 .day {left:85%}
+
+    .people.fixed:first-child .todo:first-child .user-container:first-child span.day {position:fixed;top:5rem;width:14.95%!important;background:#fff;z-index:10;height:4rem;}
+    .people.fixed .day-is-0 .day {left:9.9%;}
+    .people.fixed .day-is-1 .day {left:24.9%;}
+    .people.fixed .day-is-2 .day {left:39.9%;}
+    .people.fixed .day-is-3 .day {left:54.9%;}
+    .people.fixed .day-is-4 .day {left:69.9%}
+    .people.fixed .day-is-5 .day {left:85%}
+    .people.fixed .day-is-6 .day {left:85%}
+
+
+
+   
+    .contract job.fixed:first-child .todolabel span.day, .contract .job.fixed:first-child .todo:first-child .user-container:first-child span.day {position:fixed;top:5rem;width:13.4%!important;background:#fff;z-index:10;height:4rem;}
+    .contract .job.fixed:first-child .todolabel span.day {width:8%!important}
+    .contract .job.fixed .day-is-0 .day {left:17.88%;}
+    .contract .job.fixed .day-is-1 .day {left:31.31%;}
+    .contract .job.fixed .day-is-2 .day {left:44.73%;}
+    .contract .job.fixed .day-is-3 .day {left:58.17%;}
+    .contract .job.fixed .day-is-4 .day {left:71.59%}
+    .contract .job.fixed .day-is-5 .day {left:85%}
+    .contract .job.fixed .day-is-6 .day {left:85%}
+
+    .contract.people.fixed:first-child .todo:first-child .user-container:first-child span.day {position:fixed;top:5rem;width:14.95%!important;background:#fff;z-index:10;height:4rem;}
+    .contract.people.fixed .day-is-0 .day {left:9.9%;}
+    .contract.people.fixed .day-is-1 .day {left:24.9%;}
+    .contract.people.fixed .day-is-2 .day {left:39.9%;}
+    .contract.people.fixed .day-is-3 .day {left:54.9%;}
+    .contract.people.fixed .day-is-4 .day {left:69.9%}
+    .contract.people.fixed .day-is-5 .day {left:85%}
+    .contract.people.fixed .day-is-6 .day {left:85%}
+    
+
+
+}
+
+
+

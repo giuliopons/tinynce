@@ -1,0 +1,34 @@
+Tipo,Cosa,Ore,Stato,Priorità,Data consegna,Chi,Note
+NEW,via pomposa ferrara allarmi,"0,25",fatto,,febbraio-16-23,Giulio,
+NEW,flusso allarmi PV53665 GAGNO PIOMBINO,"0,25",fatto,,febbraio-20-23,Giulio,
+NEW,correzione dato errato dentro a flusso Aurelia 7143,"0,5",fatto,,febbraio-28-23,Giulio,"Mancava uno spazio tra il nome del campo e il valore, ora viene aggiunto programmaticamente"
+NEW,aggiunta PV piombino registrazioni,"0,25",fatto,,febbraio-28-23,Giulio,
+NEW,problema casella email che non si svuota,3,fatto,,marzo-10-23,Giulio,chiesto supporto a Karacar (non risolto ancora)
+NEW,"VIA ROMA RIMINI, allarmi e registrazioni","0,5",fatto,,marzo-14-23,Giulio,
+NEW,fix su impianto 6363 per livello pozzo 7 scritto male,"0,25",fatto,,marzo-21-23,Giulio,
+NEW,ripristino fonti cancellate inavvertitamente da ACR,1,fatto,,aprile-13-23,Giulio,
+NEW,correzione errore nel copiadati nei monitor di HPC,"0,25",fatto,,aprile-13-23,Giulio,
+NEW,"pulizia cartelle log file disco pieno, fixing blocco LOCK tabella frw_vars","0,75",fatto,1,aprile-26-23,Giulio,con supporto da Nohup
+NEW,"pulizia cartelle x disco pieno, richiesto più spazio a mantainer tedeschi","0,5",fatto,1,maggio-06-23,Giulio,
+NEW,pulizia cartelle x disco pieno,1,fatto,1,maggio-07-23,Giulio,
+NEW,correzione flusso csv quartisolo che arriva che il sistema non prende,1,fatto,,maggio-11-23,Giulio,"i nomi dei campi contengono degli spazi, modificato il sistema per aggiustare i dati"
+NEW,pulizia server e procedura per liberare spazio automaticamente,3,fatto,,maggio-14-23,Giulio,
+NEW,storicizzazione tabella invio webservice,1,fatto,,maggio-24-23,Giulio,"la tabella ws ha troppi record, storicizzata"
+NEW,"Via Roma Rimini, cambiato il nome del flusso","0,25",fatto,,maggio-30-23,Giulio,messo DataLogger
+NEW,"Via Roma Rimini, cambiato il nome del flusso (di nuovo)","0,5",fatto,,maggio-31-23,Giulio,rimesso Via Flaminia...
+NEW,VIA ROMA RIMINI  modifica match mail,"0,5",fatto,,maggio-31-23,Giulio,
+NEW,modifica per evitare l'invio di XML vecchi all'attivazione dell'invio al WS,"1,5",fatto,,maggio-31-23,Giulio,
+NEW,villa morosini ovest,"0,5",fatto,,giugno-07-23,Giulio,
+NEW,Registrazioni Impianto EX PV ENI 128A VIA BRAMANTE PAVIA,"0,5",fatto,,giugno-07-23,Giulio,
+NEW,Modifica configurazione delle varie fonti bentivoglio che si sovrapponevano,1,fatto,,giugno-09-23,Giulio,
+NEW,PV53966 MAGIONE PG ALLARME,"0,25",fatto,,giugno-15-23,Giulio,
+NEW,Registrazioni Impianto PV53753 SAN GIULIANO TERME PI ,"0,25",fatto,,giugno-20-23,Giulio,
+NEW,Registrazioni Impianto PV53966 MAGIONE PG ,"0,25",fatto,,giugno-20-23,Giulio,
+NEW,Mapping delle tag per fonti: 128A e 53753 (san giuliano) per invio al web service,1,fatto,,giugno-21-23,Giulio,
+NEW,Impostato controllo su data di arrivo email per allarmi bentivoglio,1,fatto,,luglio-31-23,Alex,
+NEW,Flusso allarmi e CSV per BOARIO,"0,25",fatto,,agosto-01-23,Giulio,
+NEW,Registrazioni2 Impianto PV ENI 3910 TESINA SUD VI e altro con Registrazioni,"0,5",fatto,,agosto-29-23,Giulio,
+NEW,Correzione   	PV 5475 VIA SENESE 62 POGGIBONSI   allarmi,"0,5",fatto,,agosto-31-23,Giulio,
+NEW,verifica fermo salassa,"0,5",fatto,,settembre-03-23,Giulio,
+NEW,"Allarmi con oggetti  contenenti ""PV 53273 FERRARA Via Padova 1 RM ALLARME "" e  ""PV 53273 FERRARA Via Padova 1 ALLARME""","0,25",fatto,,settembre-06-23,Giulio,
+NEW,Registrazioni Impianto PV 53273 FERRARA Via Padova 1,"0,25",fatto,,settembre-06-23,Giulio,

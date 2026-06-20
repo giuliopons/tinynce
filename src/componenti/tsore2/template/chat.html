@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="robots" content="noindex">
+
+	##JQUERYINCLUDE##
+	<script src="##root##src/template/comode.js?v=##VER##"></script>
+
+	<title>##TITLE##</title>
+
+	<link rel="stylesheet" type="text/css" href="template/addcal.css?v=##VER##">
+	<link rel="stylesheet" type="text/css" href="template/chat.css?v=##VER##">
+	
+	<script src="template/addcal.js?v=##VER##j"></script>
+	<!-- <script src="template/elenco.js?v=##VER##"></script> -->
+
+    <script>
+        var idutente = $_param_idutente_;   //comes from php replace
+        function editOraCompact(obj) {
+
+            $('#cliente').val( $(obj).data("cliente"));
+            $('#note').val( $(obj).data("nota"));
+            
+            getComboJob(function(){
+                $('#job').val( $(obj).data("job"));
+                $('#tipoora').val( $(obj).data("tipoora"));
+                $('#ore option.temp').remove();
+                if($('#ore option[value="'+$(obj).data("ore")+'"]').length == 0){
+                    $('#ore').prepend("<option value='"+$(obj).data("ore")+"' selected class='temp'>"+$(obj).data("ore")+"</option>");
+                } else {
+                    $('#ore').val( $(obj).data("ore")); 
+                }
+                $('#idora').val($(obj).data("idora"));
+                $('#save input').val("{Change this log}");
+                scrollBottom();
+            });
+
+        }
+
+
+        function getFormClienteJobCompact(data = "") {
+
+            // if more than one delete it
+            $q = $('div[id=inputarea]').length;
+            if($q > 1) $('div[id=inputarea]').each(function(){if($q>1) $(this).remove(); $q--;});
+
+            if(data=="" && typeof($('#inputarea').data("rel"))=="string") data = $('#inputarea').data("rel");
+
+            $('#loading2').show();
+
+            url = 'ajax/getformcliente.php?ver=compact&data='+encodeURI(data)+'&utente='+encodeURI(idutente);
+            $.ajax({	'type' : 'GET',
+                'url':url,
+                'success' : function( $response ) { 
+                    if ($response) { 
+                        $('#inputarea').html($response);
+                        getComboCliente(false, function($response){
+                            scrollBottom();
+                        });
+                        getCompiledHours(data, function($response){
+                            scrollBottom();
+                        });
+                    } 
+                    $('#loading2').hide();
+                    },
+                'error' : function () { alert("errore"); $('#loading2').hide(); }
+            });
+                
+
+        }
+
+        function getCompiledHours(data, callback="") {
+            $q = $('div[id=compiled]').length;
+            if($q > 1) $('div[id=compiled]').each(function(){if($q>1) $(this).remove(); $q--;});
+
+            url = 'ajax/getcompiledhours.php?data='+encodeURI(data)+'&utente='+encodeURI(idutente);
+            $.ajax({	'type' : 'GET',
+                'url':url,
+                'success' : function( $response ) { 
+                    if ($response) { 
+                        $('#compiled').html($response);
+                        if(typeof(callback)=="function") callback($response);
+                    } 
+                    },
+                'error' : function () { alert("errore"); }
+            });
+
+        }
+
+        function showNote(obj){
+            $(obj).hide();
+            $('input#note').show();
+        }
+
+        function wrapMessage($msg) {
+            return '<div class="msg temp">' + $msg + '</div>';
+        }
+
+
+        function sendMsg() {
+            $('#messages').append( wrapMessage($('#msgtxt').val()) );
+            $('#loading2').show();
+            url = 'ajax/sendchatmessage.php';
+            $.ajax({	'type' : 'POST',
+                'url' : url,
+                'data' : {
+                    'msg' : $('#msgtxt').val(),
+                },
+                'success' : function( response ) { 
+                    $('#loading2').hide();
+                    if (response) { 
+                        $('#messages .temp').remove();
+                        $('#messages').append(response);
+                        scrollBottom();
+                        if(response.indexOf("inputarea")!=-1) {
+                            getFormClienteJobCompact();    
+                        }
+                    } },
+                'error' : function () { alert("errore"); $('#loading2').hide(); }
+            });   
+        }
+
+        function salvaOraNoteCompact() {
+
+            var saveOra = function(){
+                ore = $('#ore').val();
+                ore = strToFloat(ore);
+                data = $('#giorno').val();
+                job = $('#job').val();
+                note = $('#note').val();
+                tipoora = $('#tipoora').val();
+                goSalvaOraNote(tipoora,data,idutente,ore,note,job,false, function(response){
+                    if(response=='ok'){
+                        $('#formcliente').parent().parent().append(_e("Done."));
+                    }
+                    getFormClienteJobCompact(data);
+                });
+            }
+
+            if($('#idora').val() == ""){
+                // crea nuova
+                saveOra();
+            } else {
+                // edit, prima faccio delete
+                deleteOra(false,$('#idora').val(), function(){
+                    $('#idora').val("");
+                    $('#save input').val("{Save}");
+                    saveOra();
+                }); 
+            }
+
+            return true;
+        }        
+        
+        function deleteOra(e,idora,callback=false) {
+            if(typeof(e)==event) e.preventDefault();
+            url = 'ajax/deleteora.php';
+            $.ajax({
+                'type' : 'POST',
+                'url' : url,
+                'data' : { 'idora' : idora, },
+                'success' : function( response ) { 
+                    if (response) { 
+                        if(typeof(callback)=="function") callback(response);
+                        else {
+                            $('#compiled a[data-idora='+idora+']').parent().remove();
+                        }
+                    } },
+                'error' : function () {  }
+            });
+        }
+
+        jQuery(document).ready(function() {
+
+            // on press enter in #msgtxt field send message
+            $('#msgtxt').keypress(function(e) {
+                if (e.which == 13) {
+                    sendMsg();
+                    $('#msgtxt').val('');
+                }
+            });
+            
+            getFormClienteJobCompact("");
+
+        });
+
+        function scrollBottom() {
+            // scroll #messages div to bottom with javascript
+            $('#messages').scrollTop($('#messages')[0].scrollHeight);
+        }
+    </script>
+</head>
+
+<body>
+
+	<div class="panel2">
+		<div class="titlecontainer">
+			<h1 class='title'>##TITLE##</h1>
+			<a href="index.php?op=chat" title="{Chat mode}" class="icon-comment disabled"></a>
+			<a href="index.php?op=calendar" title="{Calendar mode}" class="icon-calendar-empty"></a>
+		</div>
+	</div>
+	<div class="corpo">
+		<div id="messages">
+            ##MESSAGES##
+        </div>
+        <div id='loading2' style='display:none'><span class='icon-spin5 animate-spin'></span></div>
+        <div id="inputmessage"><input type='text' id="msgtxt"></div>
+	</div>
+
+</body>
+</html>
