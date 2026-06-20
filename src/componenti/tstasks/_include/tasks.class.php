@@ -5,9 +5,14 @@
 
 class Tasks extends CrudBase {
 
+	var $tbdb;	// tabella del database che contiene i dati
+	var $start;	// posizione del primo record visualizzato
+	var $omode;	// asc|desc
+	var $oby;	// campo della tabella $tbdb utilizzato per ordinare
+	var $ps;	// numero di righe per pagina nell'elenco
+
 	var $linkaggiungi;
 	var $linkmodifica;
-	var $linkmodifica_label;
 	var $linkeliminamarcate;
 
 	var $uploadDir;
@@ -25,23 +30,36 @@ class Tasks extends CrudBase {
 	 * @param  mixed $start
 	 * @return void
 	 */
-	function __construct ($tbdb="ts_tasks",$ps=99999,$oby="id_task",$omode="desc",$start=0) {
-		global $root;
+	function __construct ($tbdb="ts_tasks",$ps=99999,$oby="dt_expiration",$omode="asc",$start=0) {
+		global $root, $session;
 
 		parent::__construct($tbdb,$ps,$oby,$omode,$start);
 
 		// link above in the panel
 		$this->linkaggiungi = "getAddTaskLink(event);";
 		$this->linkeliminamarcate = "javascript:confermaDeleteCheck(document.datagrid);";
-
+		
 		// link in table grid
 		$this->linkmodifica = "$this->gestore?op=modifica&id=##id_task##";
-		$this->linkmodifica_label = "modifica";
+
+		$this->tbdb = $tbdb;
+
+		$this->start = setVariabile("gridStart",$start,$this->tbdb);
+		$this->omode= setVariabile("gridOrderMode",$omode,$this->tbdb);
+		$this->oby= setVariabile("gridOrderBy",$oby,$this->tbdb);
+		$this->ps = setVariabile("gridPageSize",$ps,$this->tbdb);
 
 		$this->uploadDir = $root."data/dbimg/tasks/";
 		$this->maxX = 6000;
 		$this->maxY = 6000;
 		$this->max_files = 50;
+
+		//
+		// save values in session if filters have changed
+		if(gridResetStartPage($_GET)) {
+			if(isset($_GET['combotipo'])) $session->set($this->tbdb."combotipo",$_GET['combotipo']);
+			if(isset($_GET['combofiltrofuturo'])) $session->set($this->tbdb."combofiltrofuturo",$_GET['combofiltrofuturo']);	
+		}
 
 		checkAbilitazione("THETASKS","SETTA_SOLO_SE_ESISTE");
 
@@ -49,55 +67,30 @@ class Tasks extends CrudBase {
 		
 	/**
 	 * get the list page
-	 *
-	 * @param  mixed $combotipo          filtering by list
-	 * @param  mixed $combotiporeset     reset the filter flag
-	 * @param  mixed $keyword            filtering by keyword
-	 * @return void                    html
 	 */
-	function elenco($combotipo="",$combotiporeset="",$keyword="") {
+	// $combotipo="",$combotiporeset="",$keyword="",$filtrofuturo="1"
+	function elenco( array $dati ) : string {
 		global $session;
 
 		$html = "";
 
 		if ($session->get("THETASKS")) {
-			if($combotiporeset=='reset') {
-				// if changed with filter select
-				// reset pagination
-				$this->start = 0;
-			}
 
-
-
-			//
-			// reactivate filter after save and cancel
-			if($combotipo=="" && $combotiporeset=="") {
-				$combotipo= setVariabile("combotipo",$combotipo,$this->tbdb);
-				$combotiporeset=setVariabile("combotiporeset",$combotipo,$this->tbdb);
-				$GLOBALS['combotipo']=$combotipo;
-				$GLOBALS['combotiporeset']=$combotiporeset;
-			}
-
-			if((int)$combotipo>0) {
+			if( (int)$dati['combotipo'] >0) {
 				$LO = new Lists();
-				if( $LO->isMyList((int)$combotipo)== 0) {
+				if( $LO->isMyList( $dati['combotipo'])== 0) {
 					$this->ambiente->loadMsg("{You're not authorized.}","jsback", ERR_MSG);
-					return;
+					return "";
 				}
 			}
 
-			$t=new grid(DB_PREFIX.$this->tbdb,$this->start, $this->ps, $this->oby, $this->omode);
+			$t=new Grid(DB_PREFIX.$this->tbdb,gridResetStartPage($dati) ? 0 : $this->start, $this->ps, $this->oby, $this->omode);
 			$t->checkboxFormAction=$this->gestore;
 			$t->checkboxFormName="datagrid";
 			$t->checkboxForm=true;
 			$t->functionhtml = "";
 			$t->mostraRecordTotali = true;
-
-			$t->parametriDaPssare = "";
-			if($combotipo) {
-				$t->parametriDaPssare.="&combotipo=".urlencode($combotipo);
-			}
-			if($keyword) $t->parametriDaPssare.="&keyword=".urlencode($keyword);
+			$t->parametriDaPssare = gridFilterParams($dati);
 
 			// fields to show
 			$t->campi="taskname,dt_expiration,de_link,stato,priority";
@@ -109,7 +102,7 @@ class Tasks extends CrudBase {
 			$t->chiave="id_task";
 
 			// query sql
-			$t->query="SELECT A.id_task,CONCAT(A.de_taskname,'|^',A.de_color,'|^',A.cd_list) AS taskname,dt_expiration, CONCAT(A.id_task,'|',en_status) as stato,
+			$t->query="SELECT DISTINCT A.id_task,CONCAT(A.de_taskname,'|^',A.de_color,'|^',A.cd_list) AS taskname,dt_expiration, CONCAT(A.id_task,'|',en_status) as stato,
 				de_link,dt_priority as priority FROM ".DB_PREFIX.$this->tbdb." as A
                 INNER JOIN ".DB_PREFIX."ts_lists L on L.id_list=A.cd_list
 				INNER JOIN ".DB_PREFIX."frw_extrauserdata E ON L.cd_owner=E.cd_user
@@ -127,41 +120,58 @@ class Tasks extends CrudBase {
 			//
 			// ARCHIVED
 			if($where!="") { $where.= " and "; }
-			if(stristr($combotipo,"_archive")) {
+			if(stristr($dati['combotipo'],"_archive")) {
 				$where.=" A.fl_archived='1'";
-				// $combotipo = str_replace("_archive","",$combotipo);	
+				// $dati['combotipo'] = str_replace("_archive","",$dati['combotipo']);	
 			} else {
 				$where.=" A.fl_archived='0'";	
 			}
 	
 			// LIST
-			if($combotipo=="-999" || $combotipo=="-999_archive") {
+			if($dati['combotipo']=="-999" || $dati['combotipo']=="-999_archive") {
 				$where.="";	
 				$show_all = true;
 			} else {
 				$show_all = false;
 				if($where!="") { $where.= " and "; }
-				$where.=" A.cd_list='".(integer)$combotipo."'";	
+				$where.=" A.cd_list='".(int)$dati['combotipo']."'";	
 			}
 
 
-			if($keyword) {
+			if($dati['keyword']) {
 				if($where!="") { $where.= " and "; }
-				$where.="  (A.de_taskname like '%{$keyword}%')";
+				$where.="  (A.de_taskname like '%{$dati['keyword']}%')";
 			}
+
+			if($dati['combofiltrofuturo'] == "1") {
+				if($where!="") { $where.= " and "; }
+				$where.=" (A.dt_expiration IS NULL OR A.dt_expiration <= DATE_ADD(CURDATE(), INTERVAL 1 MONTH))";
+			}
+
 			if($where) {
 				$t->query.=" {$where}";
 			}
 
+
 			if($this->oby == 'stato') {
-				if($this->omode == 'asc') 
-					$t->query.= " ORDER BY dt_priority desc, FIELD(en_status,'to do','in progress','done'), id_task";	
-				else 
-					$t->query.= " ORDER BY dt_priority desc, FIELD(en_status,'done','in progress','to do'), id_task";	
-			} else {
-				$t->query.= " ORDER BY dt_priority desc, ".$this->oby." ".$this->omode;	
+				if($this->omode == 'asc')
+					$t->query.= " ORDER BY (dt_priority IS NOT NULL) DESC, FIELD(en_status,'to do','in progress','done'), id_task";
+				else
+					$t->query.= " ORDER BY (dt_priority IS NOT NULL) DESC, FIELD(en_status,'done','in progress','to do'), id_task";
+			} elseif ($this->oby == 'dt_expiration') {
+				if ($this->omode == 'asc') {
+					$t->query.= " ORDER BY (dt_priority IS NOT NULL) DESC, (dt_expiration IS NULL) ASC, dt_expiration ASC";
+				} else {
+					$t->query.= " ORDER BY (dt_priority IS NOT NULL) DESC, (dt_expiration IS NULL) ASC, dt_expiration DESC";
+				}
+			} elseif ($this->oby == 'priority') {
+				if ($this->omode == 'asc') {
+					$t->query.= " ORDER BY (dt_priority IS NOT NULL) ASC, (dt_expiration IS NULL) ASC, dt_expiration ASC";
+				} else {
+					$t->query.= " ORDER BY (dt_priority IS NOT NULL) DESC, (dt_expiration IS NULL) ASC, dt_expiration DESC";
+				}
 			}
-			
+
             // $t->debug = true;
 
 			$t->addCampi("taskname","colortask",array("showall"=>$show_all));
@@ -181,11 +191,12 @@ class Tasks extends CrudBase {
 			// template filling
 			$this->ambiente->setTemplate("template/elenco.html");
 			$this->ambiente->setKey("##corpo##", $html );
-			$this->ambiente->setKey("##keyword##", $keyword);
+			$this->ambiente->setKey("##keyword##", $dati['keyword']);
 			$this->ambiente->setKey("##bottoni1##","<a href=\"#\" onclick=\"".$this->linkaggiungi."\" title=\"{Add new item}\" class='aggiungi'></a>");
 			$this->ambiente->setKey("##bottoni2##","<a href=\"$this->linkeliminamarcate\" title=\"{Delete selected items}\" class='elimina'></a>");
 			$this->ambiente->setKey("##bottoni3##","<a href=\"#\" onclick=\"toggleArchiveStatus(this,event);\" title=\"{Toggle archive}\" class='icon-folder toggable'></a>");
-			$this->ambiente->setKey("##combotipo##", $this->getHtmlcombotipo($combotipo));
+			$this->ambiente->setKey("##combotipo##", $this->getHtmlcombotipo($dati['combotipo']));
+			$this->ambiente->setKey("##filtrofuturo##", $this->getHtmlFiltroFuturo($dati['combofiltrofuturo']));
 
 		} else {
 
@@ -194,6 +205,7 @@ class Tasks extends CrudBase {
 			$this->ambiente->loadMsg("{You're not authorized.}","jsback", ERR_MSG);
 
 		}	
+		return "";
 	}
 
 	/**
@@ -204,7 +216,7 @@ class Tasks extends CrudBase {
 	 * @return void
 	 */
 	function getDettaglio(int $id=0, int $cd_list=0) : void {
-		global $session,$conn;
+		global $session,$root;
 
 		if($cd_list == 0 && $id>0) {
 			$cd_list = execute_scalar("select cd_list from ".DB_PREFIX.$this->tbdb." where id_task=".$id."", 0);
@@ -268,6 +280,13 @@ class Tasks extends CrudBase {
 			$dt_expiration->label="'{Expiration}'";
 			$objform->addControllo($dt_expiration);
 
+			$fl_annuale = new checkbox("fl_annuale","1");
+			$fl_annuale->checked = (!empty($dati["fl_annuale"]) && $dati["fl_annuale"] == 1);
+			$fl_annuale->avideo = "";
+			$fl_annuale->obbligatorio = 0;
+			$fl_annuale->label = "'{Annual}'";
+			$objform->addControllo($fl_annuale);
+
 			$cd_owner = new hidden("cd_author", $session->get("idutente") );
 
 			$ar = array('to do' => '{to do}', 
@@ -279,7 +298,9 @@ class Tasks extends CrudBase {
 			$objform->addControllo($en_status);
 
 
-			$de_text = new richtext("de_text",(($dati["de_text"])));
+			$de_text = new richtext("de_text",(($dati["de_text"])),"'100%'","'30vh'");
+			$de_text->content_css = $root . 'data/timy-theme/mce-style.css';
+			$de_text->paste_data_images = true;
 			$de_text->obbligatorio=0;
 			$de_text->label="'Testo'";
 			$objform->addControllo($de_text);
@@ -333,6 +354,7 @@ class Tasks extends CrudBase {
 			$this->ambiente->setKey("##cd_owner##", $cd_owner->gettag());
 			$this->ambiente->setKey("##de_color##", $de_color->gettag());
 			$this->ambiente->setKey("##dt_expiration##", $dt_expiration->gettag());
+			$this->ambiente->setKey("##fl_annuale##", $fl_annuale->gettag());
 			$this->ambiente->setKey("##id##", $id_obj->gettag());
 			$this->ambiente->setKey("##op##", $op->gettag());
 			$this->ambiente->setKey("##de_taskname##", $de_taskname->gettag());
@@ -389,13 +411,14 @@ class Tasks extends CrudBase {
 		if ($session->get("THETASKS")) {
 			
 			if(!isset($arDati['de_color']))	$arDati['de_color']="";
+			$arDati['fl_annuale'] = isset($arDati['fl_annuale']) ? 1 : 0;
 
-			if($arDati["dt_expiration"]=="") $arDati['dt_expiration']= "NULL";
-				else $arDati['dt_expiration']= "'".$arDati["dt_expiration"]."'";
+			if($arDati["dt_expiration"]=="") { $arDati['dt_expiration']= "NULL"; $arDati['fl_annuale'] = 0; }
+			else $arDati['dt_expiration']= "'".$arDati["dt_expiration"]."'";
 				
 			if ($arDati["id"]!="") {				
 				
-				$id = (integer)$arDati["id"];
+				$id = (int)$arDati["id"];
 
 				$LO = new Lists();
 				if($LO->isMyList($arDati['cd_list'])) {
@@ -425,6 +448,7 @@ class Tasks extends CrudBase {
 						de_link='##de_link##',
 						cd_list='##cd_list##',
 						de_text='##de_text##',
+						fl_annuale='##fl_annuale##',
 						dt_expiration=   ##dt_expiration##
 						where id_task='##id##' and cd_author='##cd_author##'";
 					$sql= str_replace("##en_status##",$arDati["en_status"],$sql);
@@ -433,8 +457,9 @@ class Tasks extends CrudBase {
 					$sql= str_replace("##dt_expiration##",$arDati["dt_expiration"],$sql);
 					$sql= str_replace("##de_link##",$arDati["de_link"],$sql);
 					$sql= str_replace("##de_text##",$arDati["de_text"],$sql);
-					$sql= str_replace("##cd_author##",(integer)$arDati["cd_author"],$sql);
-					$sql= str_replace("##cd_list##",(integer)$arDati["cd_list"],$sql);
+					$sql= str_replace("##fl_annuale##",$arDati["fl_annuale"],$sql);
+					$sql= str_replace("##cd_author##",(int)$arDati["cd_author"],$sql);
+					$sql= str_replace("##cd_list##",(int)$arDati["cd_list"],$sql);
 					$sql= str_replace("##id##",$arDati["id"],$sql);
 					$sql= str_replace("##dt_closed##",$arDati["dt_closed"],$sql);
 					$sql= str_replace("##dt_opened##",$arDati["dt_opened"],$sql);
@@ -452,13 +477,14 @@ class Tasks extends CrudBase {
 				if($session->get("idprofilo") < 20) {
 					$dati['cd_author']=$session->get("idutente");
 				}
-				$sql="INSERT into ".DB_PREFIX.$this->tbdb." (de_color,de_taskname,dt_expiration,en_status,cd_author,cd_list,dt_opened,dt_closed,de_link,de_text) values('##de_color##','##de_taskname##', ##dt_expiration##   ,'##en_status##','##cd_author##','##cd_list##','##dt_opened##','##dt_closed##','##de_link##','##de_text##')";
+				$sql="INSERT into ".DB_PREFIX.$this->tbdb." (de_color,de_taskname,dt_expiration,en_status,cd_author,cd_list,dt_opened,dt_closed,de_link,de_text,fl_annuale) values('##de_color##','##de_taskname##', ##dt_expiration##   ,'##en_status##','##cd_author##','##cd_list##','##dt_opened##','##dt_closed##','##de_link##','##de_text##','##fl_annuale##')";
 				$sql= str_replace("##en_status##",$arDati["en_status"],$sql);
 				$sql= str_replace("##de_taskname##",$arDati["de_taskname"],$sql);
 				$sql= str_replace("##dt_expiration##",$arDati["dt_expiration"],$sql);
 				$sql= str_replace("##de_link##",$arDati["de_link"],$sql);
-				$sql= str_replace("##cd_author##",(integer)$arDati["cd_author"],$sql);
-				$sql= str_replace("##cd_list##",(integer)$arDati["cd_list"],$sql);
+				$sql= str_replace("##fl_annuale##",$arDati["fl_annuale"],$sql);
+				$sql= str_replace("##cd_author##",(int)$arDati["cd_author"],$sql);
+				$sql= str_replace("##cd_list##",(int)$arDati["cd_list"],$sql);
 				$sql= str_replace("##de_color##",$arDati["de_color"],$sql);
 				$sql= str_replace("##de_text##",$arDati["de_text"],$sql);
 				$sql= str_replace("##dt_opened##",date("Y-m-d H:i:s"),$sql);
@@ -591,7 +617,7 @@ class Tasks extends CrudBase {
 
 		$id_list=0;
 		if (isset($_COOKIE["list_tasks"]) && $_COOKIE["list_tasks"]!="") {
-			$default = (integer)$_COOKIE["list_tasks"];
+			$default = (int)$_COOKIE["list_tasks"];
 			$sql = "select id_list from ".DB_PREFIX."ts_lists 
 				where (cd_user='".$session->get("idutente")."' or cd_owner='".$session->get("idutente")."' or fl_private=0)
 				and id_list=".$default." limit 0,1";
@@ -701,12 +727,25 @@ class Tasks extends CrudBase {
 			$out.="<option value='{$k}' ".(($k."x"==$def."x")?"selected":"")." data-label=\"".htmlspecialchars($v["label"])."\" data-count='{$v['count']}'>{$v["label"]}".($v['count']>0 ? " ({$v['count']})" : "")."</option>"; 
 		}
 
-		return "<select onchange='aggiornaGriglia()' name='combotipo' id='combotipo' class='filter'>{$out}</select><input type='hidden' name='combotiporeset' id='combotiporeset'></label>";
+		// return "<select onchange='aggiornaGriglia()' name='combotipo' id='combotipo' class='filter'>{$out}</select><input type='hidden' name='combotiporeset' id='combotiporeset'></label>";
+		return "<label><select onchange='aggiornaGriglia()' name='combotipo' id='combotipo' class='filter'>{$out}</select></label>";		
 	}
 
 
+	/**
+	 * get the html of the future-filter toggle select
+	 *
+	 * @param  string $def   "1" = hide far future (default), "0" = show all
+	 * @return string        the html
+	 */
+	function getHtmlFiltroFuturo($def="1") {
+		$out  = "<option value='0' ".($def=="0"?"selected":"").">{Show all tasks}</option>";
+		$out .= "<option value='1' ".($def=="1"?"selected":"").">{Hide far future tasks}</option>";
+		return "<label><select onchange='aggiornaGriglia()' name='combofiltrofuturo' id='combofiltrofuturo' class='filter'>{$out}</select></label>";	
+		
+	}
 
-	
+
 	/**
 	 * delete a task from the list
 	 *
@@ -827,11 +866,36 @@ class Tasks extends CrudBase {
 			$dt_closed =""; $dt_opened=""	;
 			if($op=="to do") {$dt_opened = date("Y-m-d H:i:s"); $dt_closed=ZERODATE." 00:00:00";}
 			if($op=="done") {$dt_closed = date("Y-m-d H:i:s");}
-			$sql = "update ".DB_PREFIX.$this->tbdb." set en_status='{$op}' 
+			$sql = "update ".DB_PREFIX.$this->tbdb." set en_status='{$op}'
 				".($dt_opened!="" ? ",dt_opened='{$dt_opened}'" : "")."
 				".($dt_closed!="" ? ",dt_closed='{$dt_closed}'" : "")."
 				where id_task='{$task}'";
 			$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
+
+			if ($op == "done") {
+				$row = execute_row("SELECT * FROM ".DB_PREFIX.$this->tbdb." WHERE id_task='{$task}'");
+				if ($row && $row['fl_annuale'] == 1 && !empty($row['dt_expiration'])) {
+					$next_date = date('Y-m-d H:i:s', strtotime('+1 year', strtotime($row['dt_expiration'])));
+					$sql = "INSERT INTO ".DB_PREFIX.$this->tbdb."
+						(de_taskname,de_color,cd_list,de_link,cd_author,de_text,fl_annuale,dt_expiration,en_status,dt_opened,dt_closed,dt_priority)
+						VALUES (
+							'".$conn->real_escape_string($row['de_taskname'])."',
+							'".$conn->real_escape_string($row['de_color'])."',
+							".(int)$row['cd_list'].",
+							'".$conn->real_escape_string($row['de_link'])."',
+							".(int)$row['cd_author'].",
+							'".$conn->real_escape_string($row['de_text'])."',
+							1,
+							'".$next_date."',
+							'to do',
+							'".date('Y-m-d H:i:s')."',
+							'".ZERODATE." 00:00:00',
+							".($row['dt_priority'] ? "'".$conn->real_escape_string($row['dt_priority'])."'" : "NULL")."
+						)";
+					$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
+				}
+			}
+
 			return $op;
 		}
 		return -1;

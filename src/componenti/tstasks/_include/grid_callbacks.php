@@ -30,10 +30,8 @@ function colortask($p,$id,$params) {
 	// $linkExt = $p2[2]!='' ? '<a href="'.$p2[2].'" style="float:right" target="_blank" title="{Open}" class="icon-link"></a>' : '';
 
 	$colore = $p2[1];
-	if ($colore=="") { $bg = "inherit"; $fg = "inherit";}
-	if ($colore!="") { $bg = $colore; $fg = "#fff";}
-	if (in_array($colore, array("yellow","orange","khaki","greenyellow","tomato","orangered","violet","pink","turquoise"))) { $bg = $colore; $fg = "#111";}
-	if ($colore=="orange") { $bg = $colore; $fg = "#111";}
+	$bg = $colore !== '' ? $colore : 'inherit';
+	$fg = fg_from_bg($colore);
 
 	$list_link="";
 	if($params["params"]["showall"] == 1) {
@@ -42,11 +40,8 @@ function colortask($p,$id,$params) {
 	
 	}
 	
-
-    return '<a href="'. $link.'" title="{Edit}">'.
-		"<span style='padding:0 .2rem;background-color:".$bg.";color:".$fg.";'>".
-		$p2[0]."</span></a>" . $list_link;
-		// .$linkExt;
+    return '<a href="'. $link.'" title="{Edit}" class="stress" style="background-color:'.$bg.';color:'.$fg.';">'.
+		$p2[0].'</a>' . $list_link;
 }
 function linktask($linkfield,$id) {
     $linkExt = $linkfield!='' ? '<a href="'.$linkfield.'" target="_blank" title="{Open}" class="icon-link"></a>' : '';
@@ -61,13 +56,13 @@ function quantoManca($dataScadenza) {
     $result = '';
 
     if ($interval->y > 0) {
-        $result = $interval->format('%y anni, %m mesi e %d giorni');
+        $result = $interval->format('%y anni');
     } elseif ($interval->m > 0) {
-        $result = $interval->format('%m mesi, %d giorni, %h ore e %i minuti');
+        $result = $interval->format('%m mesi');
     } elseif ($interval->d > 0) {
-        $result = $interval->format('%d giorni, %h ore e %i minuti');
+        $result = $interval->format('%d giorni');
     } elseif ($interval->h > 0) {
-        $result = $interval->format('%h ore e %i minuti');
+        $result = $interval->format('%h ore');
     } elseif ($interval->i > 0) {
         $result = $interval->format('%i minuti');
     } else {

@@ -66,7 +66,11 @@
 				<tr>
 					<td valign='top'>{Expiration}</td>
 					<td>##dt_expiration##</td>
-				</tr>                
+				</tr>
+				<tr id="tr_fl_annuale">
+					<td valign='top'>{Annual}</td>
+					<td>##fl_annuale##</td>
+				</tr>
 				<tr>
 					<td valign='top'>{Open date and time}</td>
 					<td>##dt_opened##</td>
@@ -85,5 +89,24 @@
 
 
 
+<script>
+function toggleAnnuale() {
+	var hidden = document.getElementById('dt_expiration');
+	var aaaa = document.getElementById('dt_expiration_aaaa');
+	var hasDate = (hidden && hidden.value.trim() !== '') || (aaaa && aaaa.value.trim() !== '');
+	var tr = document.getElementById('tr_fl_annuale');
+	if (tr) tr.style.display = hasDate ? '' : 'none';
+}
+document.addEventListener('DOMContentLoaded', function() {
+	toggleAnnuale();
+	// Il datepicker jQuery usa trigger('change') sul campo hidden — serve jQuery.on, non addEventListener
+	jQuery('#dt_expiration').on('change', toggleAnnuale);
+	// Digitazione manuale nei sotto-campi visibili
+	['dt_expiration_gg', 'dt_expiration_mm', 'dt_expiration_aaaa'].forEach(function(id) {
+		var el = document.getElementById(id);
+		if (el) el.addEventListener('change', toggleAnnuale);
+	});
+});
+</script>
 </body>
 </html>

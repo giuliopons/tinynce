@@ -12,18 +12,6 @@ include($root."src/_include/grid.class.php");
 include($root."src/_include/formcampi.class.php");
 include("_include/lists.class.php");
 include("_include/grid_callbacks.php");
-// include("../image-charts/vendor/autoload.php");
-
-// $chart = new \ImageCharts();
-
-// $pie = $chart->cht('p')->chd('a:2.5,5,8.3')->chs('100x100');
-// $pie->toDataURI();
-
-// echo $pie->toURL(); // https://image-charts.com/chart?chd=a%3A2.5%2C5%2C8.3&chs=600x300&cht=p
-// $pie->toFile('/path/to/chart.png'); //
-// $pie->toDataURI(); // data:image/png;base64,iVBORw0KGgo...
-// $pie->toBinary(); // {image content}
-
 
 
 function valore_cliente($v) {
@@ -37,23 +25,31 @@ $obj = new Lists();
 
 $html="";
 
-if (isset($_GET["op"])) {
-	$command = $_GET["op"];
-	if (isset($_GET["id"])) $parameter = $_GET["id"]; else $parameter="";
-} else if (isset($_POST["op"])) {
-	$command = $_POST["op"];
-	if (isset($_POST["id"]))	$parameter = $_POST["id"]; else $parameter="";
-}
+// if (isset($_GET["op"])) {
+// 	$command = $_GET["op"];
+// 	if (isset($_GET["id"])) $parameter = $_GET["id"]; else $parameter="";
+// } else if (isset($_POST["op"])) {
+// 	$command = $_POST["op"];
+// 	if (isset($_POST["id"]))	$parameter = $_POST["id"]; else $parameter="";
+// }
 
-$combotipo = setVariabile("combotipo","","ts_lists");
+// $combotipo = setVariabile("combotipo","","ts_lists");
 
-if (isset($_GET["combotiporeset"])) {
-	$combotiporeset = $_GET["combotiporeset"];
-} else $combotiporeset="";
+// if (isset($_GET["combotiporeset"])) {
+// 	$combotiporeset = $_GET["combotiporeset"];
+// } else $combotiporeset="";
 
-if (isset($_GET["keyword"])) {
-	$keyword= $_GET["keyword"];
-} else $keyword="";
+// if (isset($_GET["keyword"])) {
+// 	$keyword= $_GET["keyword"];
+// } else $keyword="";
+
+$command = getVar("op",["",["modifica","modificaStep2","modificaStep2reload","aggiungi","aggiungiStep2","aggiungiStep2reload","eliminaSelezionati"]]);
+$parameter = (int)getVar("id");
+$combotipo = getVar("combotipo", [ "" ,["1","0","-999"], "ts_lists"]);
+$combotiporeset = getVar("combotiporeset", [ "" , null, "ts_lists"]);
+$keyword = getVar("keyword", ["",null, "ts_lists"]);
+$title = getVar("title", [ "" , null, "ts_lists"]);
+
 
 
 if (isset($command)) {

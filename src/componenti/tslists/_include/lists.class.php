@@ -1,7 +1,8 @@
 <?php
-/*
-	class to handle clients
-*/
+/**
+ * class to handle lists
+ */
+	
 class Lists {
 	var $tbdb;	//table
 	var $start;	// start from...
@@ -85,10 +86,12 @@ class Lists {
                 OR L.cd_owner = '".$session->get("idutente")."' 
                 OR L.fl_private = 0) ";
 			
+			
 			if($combotipo==="0" || $combotipo) {
 				if($combotipo=="-999") {
 				} else {
 					if($where!="") { $where.= " and "; }
+
 					if($combotipo=="0") {
 						$where.=" L.fl_private=0 ";	
 					} 
@@ -96,7 +99,6 @@ class Lists {
 						$where.=" L.fl_private=1 ";	
 					} 
 				}
-
 			}
 			if($keyword) {
 				if($where!="") { $where.= " and "; }
