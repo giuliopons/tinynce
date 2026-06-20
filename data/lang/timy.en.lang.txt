@@ -246,6 +246,7 @@ LABEL,TRANSLATION
 ----------------------,--------CLIENTS----------------
 "Do you confirm to delete the selected clients and all their jobs and hours?","Do you confirm to delete the selected clients and all their jobs and hours?"
 "Client details","Client details"
+"Show jobs for this client","Show jobs for this client"
 ----------------------,--------MY LOG TIME----------------
 "Month","Month"
 "Hours","Hours"
@@ -363,3 +364,12 @@ LABEL,TRANSLATION
 "Profiles","Profiles"
 "Profile info","Profile info"
 "Profile #ID","Profile #ID"
+----------------------,--------------FORNITORI-----------------
+"Supplier","Supplier"
+"Suppliers","Suppliers"
+"Registry","Registry"
+"Supplier details","Supplier details"
+"Do you confirm to delete the selected suppliers?","Do you confirm to delete the selected suppliers?"
+"Costs &amp; Revenues","Costs &amp; Revenues"
+"Costs","Costs"
+"Revenues","Revenues"

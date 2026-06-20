@@ -982,6 +982,20 @@ class install {
 			ADD KEY `idx_cd_author` (`cd_author`),
 			ADD KEY `idx_dt_saved` (`dt_saved`);";
 
+			
+			$ar[] = "CREATE TABLE `".DB_PREFIX."ts_fornitori` (
+			`id_fornitore` int(11) UNSIGNED NOT NULL,
+			`de_nomefornitore` varchar(50) NOT NULL
+			) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
+
+			$ar[] = "ALTER TABLE `".DB_PREFIX."ts_fornitori`
+			ADD PRIMARY KEY (`id_fornitore`),
+			ADD UNIQUE KEY `de_nomefornitore` (`de_nomefornitore`);";
+
+			$ar[] = "ALTER TABLE `".DB_PREFIX."ts_fornitori`
+			MODIFY `id_fornitore` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;";
+
+
 		}
 		foreach ($ar as $s) { 
 			$conn->query($s) or die("Error executing query: <pre><code>$s</code></pre>.<br><br>Error:<br><br><b>".$conn->error."</b>");
