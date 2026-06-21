@@ -82,6 +82,7 @@ class Ricavi {
 			$t->addCampi('nu_importo',"numero");
 			$t->addCampiDate('dt_payment',"dd/mm/yyyy");
 			$t->addScegliDaInsieme('en_status',$this->arStati);
+			$t->arFormattazioneTD=array("nu_importo"=>"numero");
 			$texto = $t->show();
 			if (trim($texto)=="") $texto="Nessun record trovato.";
 			$html .= $texto."<br/>";
@@ -127,6 +128,7 @@ class Ricavi {
 
 			$nu_importo = new numerodecimale("nu_importo",($dati["nu_importo"]),12,12,2);
 			$nu_importo->obbligatorio=1;
+			$nu_importo->attributes.=" style='text-align:right'";
 			$nu_importo->label="'Importo'";
 			$objform->addControllo($nu_importo);
 

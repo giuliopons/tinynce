@@ -8,7 +8,7 @@ include($root."src/_include/formcampi.class.php");
 include("_include/tsricavi.class.php");
 
 function numero($s) {
-	return "<div style='text-align:right'>".number_format((float)$s,2,',','.')."</div>";
+	return number_format((float)$s,2,',','.').MONEY;
 }
 
 //::aggiorno posizione::
