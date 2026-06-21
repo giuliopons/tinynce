@@ -90,6 +90,9 @@ componenti/{name}/
 | `tstasks` | Todos component |
 | `tslists` | Lists of todos component |
 | `tsnotes` | Notes component |
+| `tsfornitori` | Suppliers component |
+| `tsricavi` | Job revenues component |
+| `tscosti` | Job costs component |
 
 
 
@@ -154,10 +157,24 @@ Il framework usa un icon font con classi `icon-*` (es. `icon-help-circled`, `ico
 
 Alcuni componenti usano `ajax.php` direttamente nella root del componente (non nella sottocartella `ajax/`). Entrambi i pattern sono validi; `ajax.php` diretto è più comune nei componenti recenti.
 
+### Campi dei form
+
+I generatori di campo (`testo`, `data`, `optionlist`, `autocomplete`, ecc.) sono in
+`src/_include/formcampi.class.php`. Per firme dei costruttori, esempi d'uso e note pratiche
+(incluso il pattern `autocomplete` + endpoint AJAX) vedi [FORMCAMPI-FIELDS.md](FORMCAMPI-FIELDS.md).
+**Se incontri un campo di cui non conosci l'uso, chiedi all'utente il path di un altro
+progetto del framework che lo usa e replica quel pattern, invece di inventare.**
+
 ## Language Files
 
-Located in `data/lang/`. Format: tab-separated `KEY\tValue`.
-Active files: `en.lang.txt`, `it.lang.txt` (and module variants).
+Located in `data/lang/`. Format: **CSV with quoted values** — `"KEY","TRANSLATION"`
+(an optional third column carries a version, e.g. `"...","...","4.2.8"`). The first line
+is the header `LABEL,TRANSLATION`. Files use CRLF line endings.
+Active files: `en.lang.txt` / `it.lang.txt` (core) and the module variants
+`base.{en,it}.lang.txt` and `timy.{en,it}.lang.txt`. **Timy-specific labels live in
+`timy.it.lang.txt` / `timy.en.lang.txt`** (e.g. component labels like `Supplier`,
+`Revenues`, `Costs`). In templates the key is referenced as `{KEY}` and resolved by
+`translateHtml()`.
 
 ## Configuration
 
