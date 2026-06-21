@@ -9,11 +9,13 @@ Built with PHP, MySQL, and JavaScript on a custom personal backend framework (MV
 
 ## Technology Stack
 
-- **Backend:** PHP (no Composer dependencies in this branch), MySQLi
+- **Backend:** PHP, MySQLi. **Composer is used in the core** for the autoload:
+  `config.php` requires `src/vendor/autoload.php` (e.g. PHPMailer ships via Composer).
+  The `composer.json` lives in the framework core; `src/vendor/` is present locally.
 - **Frontend:** Vanilla JavaScript, HTML templates with `##placeholder##` syntax
 - **Database:** MySQL
 - **Auth:** Session-based with role/profile system
-- **i18n:** Tab-separated `.lang.txt` files, `{label}` syntax in templates
+- **i18n:** CSV `.lang.txt` files (`"KEY","VALUE"`), `{label}` syntax in templates
 
 ## Repository Layout
 
@@ -197,7 +199,9 @@ Template for new installs: `pons-settings-install.php`.
 
 ## Development Guidelines
 
-- **No Composer** in this branch — do not add vendor dependencies
+- **Composer is available** (autoload wired in `config.php` via `src/vendor/autoload.php`),
+  but adding new dependencies must be deliberate and surgical — this is a stable
+  production system, so don't pull in vendor packages casually.
 - **No framework upgrades** — this is a stable production system; changes must be surgical
 - **Component pattern is fixed** — new features go into new components or extend existing ones following the same `index.php` + class + templates structure
 - **DB changes are manual** — document any schema changes clearly; there is no migration runner
