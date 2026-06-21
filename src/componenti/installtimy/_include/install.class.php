@@ -995,6 +995,13 @@ class install {
 			$ar[] = "ALTER TABLE `".DB_PREFIX."ts_fornitori`
 			MODIFY `id_fornitore` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;";
 
+			$ar[] = "CREATE TABLE `".DB_PREFIX."ts_ricavi` (`id_ricavo` INT NOT NULL AUTO_INCREMENT , `cd_job` INT NOT NULL , `dt_saved` DATETIME NOT NULL , `dt_payment` DATE NOT NULL , `nu_importo` DECIMAL(10,2) NOT NULL, `en_status` ENUM('estimate','progress claim','invoice emitted','invoice payed') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL , PRIMARY KEY (`id_ricavo`)) ENGINE = InnoDB;";
+			$ar[] = "ALTER TABLE `".DB_PREFIX."ts_ricavi`
+						ADD UNIQUE KEY `cd_job` (`cd_job`,`dt_saved`);";
+
+			$ar[] = "CREATE TABLE `".DB_PREFIX."ts_costi` (`id_costo` INT NOT NULL AUTO_INCREMENT , `cd_job` INT NOT NULL , `dt_saved` DATETIME NOT NULL , `dt_payment` DATE NOT NULL , `nu_importo` DECIMAL(10,2) NOT NULL,`en_status` ENUM('estimate','progress claim','invoice emitted','invoice payed') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL , `cd_fornitore` INT NOT NULL, PRIMARY KEY (`id_costo`)) ENGINE = InnoDB;";
+			$ar[] = "ALTER TABLE `".DB_PREFIX."ts_costi`
+						ADD UNIQUE KEY `cd_job` (`cd_job`,`dt_saved`);";
 
 		}
 		foreach ($ar as $s) { 
