@@ -24,6 +24,13 @@ class ReportCostiRicavi {
         }, $r);
     }
 
+    // Formattazione importo per l'output HTML: se il valore arrotondato e' zero
+    // mostra un "-" grigio invece di "0€", per alleggerire la tabella.
+    function money($val, $dec=0) {
+        if(round((float)$val, $dec) == 0) return "<span style='color:#bbb'>-</span>";
+        return numberf($val,$dec)."<span style='color:#bbb'>".MONEY."</span>";
+    }
+
     // Colonne selezionate: alla prima apertura (op non impostato) tutte attive;
     // in ricerca valgono solo le checkbox effettivamente inviate. Fallback: personale.
     function colonneSelezionate($dati) {
@@ -290,8 +297,6 @@ class ReportCostiRicavi {
 			$sommatutteore = 0;
 				$out="<tr>";
 				$out.="<th>{Client}</th>";
-				$out.="<th class='n'>{Hours}</th>";
-				$out.="<th class='n'>{Days}</th>";
 				if($col['pers']) $out.="<th class='n'>{Personnel cost}</th>";
 				if($col['forn']) $out.="<th class='n'>{Supplier costs}</th>";
 				if($col['ric'])  $out.="<th class='n'>{Revenues}</th>";
@@ -299,8 +304,6 @@ class ReportCostiRicavi {
 
 				$csv="";
 				$csv.='"'."{Client}".'"'.";";
-				$csv.='"'."{Hours}".'"'.";";
-				$csv.='"'."{Days}".'"'.";";
 				if($col['pers']) $csv.='"'."{Personnel cost}".'"'.";";
 				if($col['forn']) $csv.='"'."{Supplier costs}".'"'.";";
 				if($col['ric'])  $csv.='"'."{Revenues}".'"'.";";
@@ -315,24 +318,18 @@ class ReportCostiRicavi {
 
 				$out.="<tr>";
 				$out.="<td>".$r['cliente']."</td>";
-				$out.="<td class='n'>".numberf($r['ore'],1)."</td>";
-				$out.="<td class='n'>".numberf($r['giornate'])."</td>";
-				if($col['pers']) $out.="<td class='n'>".numberf($r['costo_personale'],0).MONEY."</td>";
-				if($col['forn']) $out.="<td class='n'>".numberf($costo_fornitori,0).MONEY."</td>";
-				if($col['ric'])  $out.="<td class='n'>".numberf($ricavi,0).MONEY."</td>";
+				if($col['pers']) $out.="<td class='n'>".$this->money($r['costo_personale'],0)."</td>";
+				if($col['forn']) $out.="<td class='n'>".$this->money($costo_fornitori,0)."</td>";
+				if($col['ric'])  $out.="<td class='n'>".$this->money($ricavi,0)."</td>";
 				$out.="</tr>";
 
 				$csv.='"'.$r['cliente'].'"'.";";
-				$csv.='"'.numberf($r['ore'],1).'"'.";";
-				$csv.='"'.numberf($r['giornate'],1).'"'.";";
 				if($col['pers']) $csv.='"'.numberf($r['costo_personale'],2).'"'.";";
 				if($col['forn']) $csv.='"'.numberf($costo_fornitori,2).'"'.";";
 				if($col['ric'])  $csv.='"'.numberf($ricavi,2).'"'.";";
 				$csv.="\n";
 
 
-				$sommaore += $r['ore'];
-				$sommagiornate += $r['giornate'];
 				$sommacosto_personale+= $r['costo_personale'];
 				$sommacosto_fornitori+= $costo_fornitori;
 				$sommaricavi+= $ricavi;
@@ -342,16 +339,12 @@ class ReportCostiRicavi {
 				$out.="<tr>";
 
 				$out.="<th class='n'>&nbsp;</th>";
-				$out.="<th class='n'>".numberf($sommaore,1)."h "."</th>";
-				$out.="<th class='n'>".numberf($sommagiornate,1)."g "."</th>";
-				if($col['pers']) $out.="<th class='n'>".numberf($sommacosto_personale,0).MONEY."</th>";
-				if($col['forn']) $out.="<th class='n'>".numberf($sommacosto_fornitori,0).MONEY."</th>";
-				if($col['ric'])  $out.="<th class='n'>".numberf($sommaricavi,0).MONEY."</th>";
+				if($col['pers']) $out.="<th class='n'>".$this->money($sommacosto_personale,0)."</th>";
+				if($col['forn']) $out.="<th class='n'>".$this->money($sommacosto_fornitori,0)."</th>";
+				if($col['ric'])  $out.="<th class='n'>".$this->money($sommaricavi,0)."</th>";
 				$out.="</tr>";
 
 				$csv.=";";
-				$csv.='"'.numberf($sommaore,1).'"'.";";
-				$csv.='"'.numberf($sommagiornate,1).'"'.";";
 				if($col['pers']) $csv.='"'.numberf($sommacosto_personale,0).'"'.";";
 				if($col['forn']) $csv.='"'.numberf($sommacosto_fornitori,0).'"'.";";
 				if($col['ric'])  $csv.='"'.numberf($sommaricavi,0).'"'.";";
@@ -424,8 +417,6 @@ class ReportCostiRicavi {
 				$out.="<th>{Code}</th>";
 				$out.="<th>{Client}</th>";
 				$out.="<th>{Job}</th>";
-				$out.="<th class='n'>{Hours}</th>";
-				$out.="<th class='n'>{Days}</th>";
 				if($col['pers']) $out.="<th class='n'>{Personnel cost}</th>";
 				if($col['forn']) $out.="<th class='n'>{Supplier costs}</th>";
 				if($col['ric'])  $out.="<th class='n'>{Revenues}</th>";
@@ -435,8 +426,6 @@ class ReportCostiRicavi {
 				$csv.='"'."{Code}".'"'.";";
 				$csv.='"'."{Client}".'"'.";";
 				$csv.='"'."{Job}".'"'.";";
-				$csv.='"'."{Hours}".'"'.";";
-				$csv.='"'."{Days}".'"'.";";
 				if($col['pers']) $csv.='"'."{Personnel cost}".'"'.";";
 				if($col['forn']) $csv.='"'."{Supplier costs}".'"'.";";
 				if($col['ric'])  $csv.='"'."{Revenues}".'"'.";";
@@ -453,19 +442,15 @@ class ReportCostiRicavi {
 				$out.="<td style='white-space:nowrap'>".$r['de_codice']."</td>";
 				$out.="<td>".$r['cliente']."</td>";
 				$out.="<td>".$r['commessa']."</td>";
-				$out.="<td class='n'>".numberf($r['ore'],1)."</td>";
-				$out.="<td class='n'>".numberf($r['giornate'],1)."</td>";
-				if($col['pers']) $out.="<td class='n'>".numberf($r['costo_personale'],2).MONEY."</td>";
-				if($col['forn']) $out.="<td class='n'>".numberf($costo_fornitori,2).MONEY."</td>";
-				if($col['ric'])  $out.="<td class='n'>".numberf($ricavi,2).MONEY."</td>";
+				if($col['pers']) $out.="<td class='n'>".$this->money($r['costo_personale'],2)."</td>";
+				if($col['forn']) $out.="<td class='n'>".$this->money($costo_fornitori,2)."</td>";
+				if($col['ric'])  $out.="<td class='n'>".$this->money($ricavi,2)."</td>";
 				$out.="</tr>";
 
 
 				$csv.='"'.$r['de_codice'].'"'.";";
 				$csv.='"'.$r['cliente'].'"'.";";
 				$csv.='"'.$r['commessa'].'"'.";";
-				$csv.='"'.numberf($r['ore'],1).'"'.";";
-				$csv.='"'.numberf($r['giornate'],1).'"'.";";
 				if($col['pers']) $csv.='"'.numberf($r['costo_personale'],2).'"'.";";
 				if($col['forn']) $csv.='"'.numberf($costo_fornitori,2).'"'.";";
 				if($col['ric'])  $csv.='"'.numberf($ricavi,2).'"'.";";
@@ -473,8 +458,6 @@ class ReportCostiRicavi {
 
 
 
-				$sommaore += $r['ore'];
-				$sommagiornate += $r['giornate'];
 				$sommacosto_personale+= $r['costo_personale'];
 				$sommacosto_fornitori+= $costo_fornitori;
 				$sommaricavi+= $ricavi;
@@ -486,18 +469,14 @@ class ReportCostiRicavi {
 				$out.="<th class='n' >&nbsp;</th>";
 				$out.="<th class='n' >&nbsp;</th>";
 				$out.="<th class='n' >&nbsp;</th>";
-				$out.="<th class='n' >".numberf($sommaore,1)."h "."</th>";
-				$out.="<th class='n' >".numberf($sommagiornate,1)."g "."</th>";
-				if($col['pers']) $out.="<th class='n' >".numberf($sommacosto_personale,0).MONEY."</th>";
-				if($col['forn']) $out.="<th class='n' >".numberf($sommacosto_fornitori,0).MONEY."</th>";
-				if($col['ric'])  $out.="<th class='n' >".numberf($sommaricavi,0).MONEY."</th>";
+				if($col['pers']) $out.="<th class='n' >".$this->money($sommacosto_personale,0)."</th>";
+				if($col['forn']) $out.="<th class='n' >".$this->money($sommacosto_fornitori,0)."</th>";
+				if($col['ric'])  $out.="<th class='n' >".$this->money($sommaricavi,0)."</th>";
 				$out.="</tr>";
 
 				$csv.=";";
 				$csv.=";";
 				$csv.=";";
-				$csv.='"'.numberf($sommaore,1).'"'.";";
-				$csv.='"'.numberf($sommagiornate,1).'"'.";";
 				if($col['pers']) $csv.='"'.numberf($sommacosto_personale,0).'"'.";";
 				if($col['forn']) $csv.='"'.numberf($sommacosto_fornitori,0).'"'.";";
 				if($col['ric'])  $csv.='"'.numberf($sommaricavi,0).'"'.";";
@@ -669,7 +648,7 @@ class ReportCostiRicavi {
 						if($mk=='pers')     $val = isset($fieldsAr[$ym]) ? $fieldsAr[$ym] : 0;
 						elseif($mk=='forn') $val = isset($mapForn[$id_job][$ym]) ? $mapForn[$id_job][$ym] : 0;
 						else                $val = isset($mapRic[$id_job][$ym])  ? $mapRic[$id_job][$ym]  : 0;
-						$out.="<td class='n'>".numberf($val,0).MONEY."</td>";
+						$out.="<td class='n'>".$this->money($val,0)."</td>";
 						$csv.='"'.numberf($val,2).'"'.";";
 					}
 				}
