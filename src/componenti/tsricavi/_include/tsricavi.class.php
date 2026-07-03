@@ -114,7 +114,8 @@ class Ricavi {
 					"cd_job"=>"",
 					"nu_importo"=>"",
 					"dt_payment"=>"",
-					"en_status"=>"estimate");
+					"en_status"=>"estimate",
+					"de_label"=>"");
 				$action = "aggiungiStep2";
 			}
 
@@ -140,8 +141,15 @@ class Ricavi {
 			$en_status = new optionlist("en_status",$dati["en_status"],$this->arStati);
 			$objform->addControllo($en_status);
 
+			$de_label = new testo("de_label",$dati["de_label"],50,50);
+			$de_label->label="'Riferimento'";
+			$objform->addControllo($de_label);
+
 			$id_ricavo = new hidden("id",$dati["id_ricavo"]);
 			$op = new hidden("op",$action);
+
+			//storico modifiche (solo in modifica)
+			$storico = ($id!="") ? "<fieldset class='mainfieldset'><legend>{Change history}</legend>".$this->getStorico($id)."</fieldset>" : "";
 
 			$html = loadTemplateAndParse("template/dettaglio.html");
 			$html = str_replace("##STARTFORM##", $objform->startform(), $html);
@@ -151,6 +159,8 @@ class Ricavi {
 			$html = str_replace("##nu_importo##", $nu_importo->gettag(), $html);
 			$html = str_replace("##dt_payment##", $dt_payment->gettag(), $html);
 			$html = str_replace("##en_status##", $en_status->gettag(), $html);
+			$html = str_replace("##de_label##", $de_label->gettag(), $html);
+			$html = str_replace("##STORICO_PANEL##", $storico, $html);
 			$html = str_replace("##gestore##", $this->gestore, $html);
 			$html = str_replace("##ENDFORM##", $objform->endform(), $html);
 			$html = str_replace("##MONEY##", MONEY, $html);
@@ -161,6 +171,45 @@ class Ricavi {
 	}
 	function getDati($id) {
 		return execute_row("SELECT * from ".DB_PREFIX."ts_ricavi where id_ricavo='{$id}'");
+	}
+
+	/*
+		restituisce l'html del pannello con lo storico delle modifiche del ricavo.
+	*/
+	function getStorico($id) {
+		$id = (int)$id;
+		$t=new grid(DB_PREFIX."ts_ricavi_storico",0,50,"dt_modifica","desc","0","storico");
+		$t->flagOrdinatori="off";
+		$t->mostraRecordTotali=false;
+		$t->checkboxForm=false;
+		//campi da visualizzare
+		$t->campi="dt_modifica,utente,dt_payment,nu_importo,en_status,de_label";
+		//titoli dei campi da visualizzare
+		$t->titoli="{Modified on},{Modified by},{Payment date},{Amount},{Status},{Reference}";
+		//id per la chiave
+		$t->chiave="id_storico";
+		//query per estrarre i dati
+		$t->query="select s.id_storico, s.dt_modifica, concat(u.nome,' ',u.cognome) as utente, s.dt_payment, s.nu_importo, s.en_status, s.de_label from ".DB_PREFIX."ts_ricavi_storico s left join ".DB_PREFIX."frw_utenti u on s.cd_utente=u.id where s.cd_ricavo='{$id}' order by s.dt_modifica desc";
+		$t->addCampiDate('dt_modifica',"dd/mm/yyyy hh:ii");
+		$t->addCampiDate('dt_payment',"dd/mm/yyyy");
+		$t->addCampi('nu_importo',"numero");
+		$t->addScegliDaInsieme('en_status',$this->arStati);
+		$t->arFormattazioneTD=array("nu_importo"=>"numero");
+		$texto = $t->show();
+		if (trim($texto)=="") $texto="{No changes recorded.}";
+		return $texto;
+	}
+
+	/*
+		registra uno snapshot della versione corrente del ricavo nello storico.
+		i parametri sono gia' escaped (addslashes) dal chiamante.
+	*/
+	function logStorico($cd_ricavo,$dt_payment,$nu_importo,$en_status,$de_label) {
+		global $session,$conn;
+		$cd_ricavo = (int)$cd_ricavo;
+		$cd_utente = (int)$session->get("idutente");
+		$sql="INSERT into ".DB_PREFIX."ts_ricavi_storico (cd_ricavo,cd_utente,dt_modifica,dt_payment,nu_importo,en_status,de_label) values('{$cd_ricavo}','{$cd_utente}',NOW(),'{$dt_payment}','{$nu_importo}','{$en_status}','{$de_label}')";
+		$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
 	}
 
 	function updateAndInsert($arDati) {
@@ -175,20 +224,35 @@ class Ricavi {
 			$nu_importo	= addslashes($arDati["nu_importo"]);
 			$dt_payment	= addslashes($arDati["dt_payment"]);
 			$en_status	= addslashes($arDati["en_status"]);
+			$de_label	= addslashes(substr($arDati["de_label"],0,50));
 			if ($arDati["id"]!="") {
 				/*
 					Modifica
 				*/
 				$id = (int)$arDati["id"];
-				$sql="UPDATE ".DB_PREFIX."ts_ricavi set cd_job='{$cd_job}', nu_importo='{$nu_importo}', dt_payment='{$dt_payment}', en_status='{$en_status}' where id_ricavo='{$id}'";
+				//leggo lo stato corrente per capire se qualcosa e' cambiato
+				$old = $this->getDati($id);
+				$sql="UPDATE ".DB_PREFIX."ts_ricavi set cd_job='{$cd_job}', nu_importo='{$nu_importo}', dt_payment='{$dt_payment}', en_status='{$en_status}', de_label='{$de_label}' where id_ricavo='{$id}'";
 				$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
+				//storico: registro solo se un campo tracciato e' cambiato
+				if( !empty($old) && (
+					$old["dt_payment"]        != $arDati["dt_payment"]
+					|| (float)$old["nu_importo"] != (float)$arDati["nu_importo"]
+					|| $old["en_status"]      != $arDati["en_status"]
+					|| (string)$old["de_label"]  != (string)substr($arDati["de_label"],0,50)
+				) ) {
+					$this->logStorico($id,$dt_payment,$nu_importo,$en_status,$de_label);
+				}
 				$html= "";
 			} else {
 				/*
 					Inserimento
 				*/
-				$sql="INSERT into ".DB_PREFIX."ts_ricavi (cd_job,dt_saved,dt_payment,en_status,nu_importo) values('{$cd_job}',NOW(),'{$dt_payment}','{$en_status}','{$nu_importo}')";
+				$sql="INSERT into ".DB_PREFIX."ts_ricavi (cd_job,dt_saved,dt_payment,en_status,nu_importo,de_label) values('{$cd_job}',NOW(),'{$dt_payment}','{$en_status}','{$nu_importo}','{$de_label}')";
 				$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
+				//storico: prima versione del ricavo
+				$id = (int)$conn->insert_id;
+				$this->logStorico($id,$dt_payment,$nu_importo,$en_status,$de_label);
 				$html= "";
 			}
 		} else {
@@ -207,6 +271,9 @@ class Ricavi {
 		if ($session->get("TSRICAVI")) {
 
 			$id = (int)$id;
+			//cancello prima lo storico collegato, poi il ricavo
+			$sqlst = "delete from ".DB_PREFIX."ts_ricavi_storico where cd_ricavo='{$id}'";
+			$conn->query($sqlst) or (trigger_error($conn->error."<br>$sqlst='{$sqlst}'"));
 			$sql = "delete from ".DB_PREFIX."ts_ricavi where id_ricavo='{$id}'";
 			$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
 
