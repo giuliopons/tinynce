@@ -45,6 +45,7 @@ class Clienti {
 		$html = "";
 		//echo $dati["combostato"]."///";
 		if (isset($dati["combocliente"])) $combocliente=$dati["combocliente"]; else $combocliente="";
+		if (isset($dati["combotipocliente"])) $combotipocliente=$dati["combotipocliente"]; else $combotipocliente="";
 		if (isset($dati["keyword"])) $keyword=$dati["keyword"]; else $keyword="";
 		if ($session->get("TSCLIENTI")) {
 			$t=new grid(DB_PREFIX.$this->tbdb,$this->start, $this->ps, $this->oby, $this->omode);
@@ -55,6 +56,7 @@ class Clienti {
 			$t->mostraRecordTotali=true;
 			$t->parametriDaPssare = "";
 			if($combocliente) $t->parametriDaPssare.="&combocliente=".urlencode($combocliente);
+			if($combotipocliente) $t->parametriDaPssare.="&combotipocliente=".urlencode($combotipocliente);
 			if($keyword) $t->parametriDaPssare.="&keyword=".urlencode($keyword);
 			//campi da visualizzare
 			$t->campi="de_nomecliente,quanti";
@@ -71,6 +73,10 @@ class Clienti {
 					if($where!="") { $where.= " and "; }
 					$where.=" id_cliente='{$combocliente}'";
 				}
+			}
+			if($combotipocliente && $combotipocliente!=-999) {
+				if($where!="") { $where.= " and "; }
+				$where.=" cd_tipo_cliente='".(int)$combotipocliente."'";
 			}
 			if($keyword) {
 				if($where!="") { $where.= " and "; }
@@ -115,7 +121,8 @@ class Clienti {
 					inserimento
 				*/
 				$dati = array("id_cliente"=>"",
-					"de_nomecliente"=>"");
+					"de_nomecliente"=>"",
+					"cd_tipo_cliente"=>"");
 				$action = "aggiungiStep2";
 			}
 
@@ -127,6 +134,11 @@ class Clienti {
 			$de_nomecliente->label="'Nome del cliente'";
 			$objform->addControllo($de_nomecliente);
 
+			$cd_tipo_cliente = new optionlist("cd_tipo_cliente",$dati["cd_tipo_cliente"]);
+			$cd_tipo_cliente->loadSqlOptions("select id_tipo_cliente,de_tipo_cliente from ".DB_PREFIX."ts_tipi_cliente order by de_tipo_cliente","id_tipo_cliente","de_tipo_cliente","{choose}");
+			$cd_tipo_cliente->label="'Tipo cliente'";
+			$objform->addControllo($cd_tipo_cliente);
+
 			$id_cliente = new hidden("id",$dati["id_cliente"]);
 			$op = new hidden("op",$action);
 			// $submit = new submit("invia","salva");
@@ -137,6 +149,7 @@ class Clienti {
 			$html = str_replace("##op##", $op->gettag(), $html);
 			//$html = str_replace("##submit##", $submit->gettagimage($root."images/salva.gif"," Salva"), $html);
 			$html = str_replace("##de_nomecliente##", $de_nomecliente->gettag(), $html);
+			$html = str_replace("##cd_tipo_cliente##", $cd_tipo_cliente->gettag(), $html);
 			$html = str_replace("##gestore##", $this->gestore, $html);
 			$html = str_replace("##ENDFORM##", $objform->endform(), $html);
 		} else {
@@ -157,11 +170,12 @@ class Clienti {
 		//  "0" --> il tuo profilo non ti consente l'inserimento/modifica
 		global $session, $conn;
 		if ($session->get("TSCLIENTI")) {
+			$cd_tipo_cliente = (int)$arDati["cd_tipo_cliente"];
 			if ($arDati["id"]!="") {
 				/*
 					Modifica
 				*/
-				$sql="UPDATE ".DB_PREFIX."ts_clienti set de_nomecliente='##de_nomecliente##' where id_cliente='##id_cliente##'";
+				$sql="UPDATE ".DB_PREFIX."ts_clienti set de_nomecliente='##de_nomecliente##', cd_tipo_cliente='{$cd_tipo_cliente}' where id_cliente='##id_cliente##'";
 				//";
 				$sql= str_replace("##de_nomecliente##",$arDati["de_nomecliente"],$sql);
 				$sql= str_replace("##id_cliente##",$arDati["id"],$sql);
@@ -172,7 +186,7 @@ class Clienti {
 				/*
 					Inserimento
 				*/
-				$sql="INSERT into ".DB_PREFIX."ts_clienti (de_nomecliente) values('##de_nomecliente##')";
+				$sql="INSERT into ".DB_PREFIX."ts_clienti (de_nomecliente,cd_tipo_cliente) values('##de_nomecliente##','{$cd_tipo_cliente}')";
 				$sql= str_replace("##de_nomecliente##",$arDati["de_nomecliente"],$sql);
 				$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
 				$numero = $conn->insert_id;
@@ -253,6 +267,22 @@ class Clienti {
 		$out = "";
 		foreach ($arFiltri as $k => $v) { $out.="<option value='{$k}' ".(($k."x"==$def."x")?"selected":"").">{$v}</option>"; }
 		return "<select onchange='aggiornaGriglia()' name='combocliente' id='combocliente'>{$out}</select>";
+	}
+
+	function getHtmlComboTipiCliente($def="") {
+		global $conn;
+		//------------------------------------------------
+		//combo filtri per tipologia cliente
+		$sql = "select id_tipo_cliente,de_tipo_cliente,(select count(*) from ".DB_PREFIX."ts_clienti where cd_tipo_cliente=id_tipo_cliente) as c from ".DB_PREFIX."ts_tipi_cliente order by de_tipo_cliente";
+		$rs = $conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
+		$arFiltri = array("-999"=>"--{choose}--");
+		while($riga = $rs->fetch_array()) {
+			$arFiltri[$riga['id_tipo_cliente']]=$riga['de_tipo_cliente']." (".$riga['c'].")";
+		}
+		//------------------------------------------------
+		$out = "";
+		foreach ($arFiltri as $k => $v) { $out.="<option value='{$k}' ".(($k."x"==$def."x")?"selected":"").">{$v}</option>"; }
+		return "<select onchange='aggiornaGriglia()' name='combotipocliente' id='combotipocliente' class='filter'>{$out}</select>";
 	}
 
 	function getHtmlCercaBox($def="") {

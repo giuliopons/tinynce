@@ -21,6 +21,7 @@ $html="";
 $command = postget("op");
 $parameter = postget("id");
 $keyword = postget("keyword");
+$combotipofornitore = postget("combotipofornitore");
 
 //esegue eventuali comandi passati
 if (isset($command)) {
@@ -69,6 +70,7 @@ if ($html=="") {
 	$html = str_replace("##bottoni1##","<a href=\"$obj->linkaggiungi\" title=\"".$obj->linkaggiungi_label."\" class='aggiungi'></a>", $html);
 	$html = str_replace("##bottoni2##","<a href=\"$obj->linkeliminamarcate\" title=\"{Delete selected items}\" class='elimina'></a>", $html);
 
+	$html = str_replace("##combotipofornitore##", $obj->getHtmlComboTipiFornitore($combotipofornitore), $html);
 	$html = str_replace("##keyword##", $keyword, $html);
 
 }

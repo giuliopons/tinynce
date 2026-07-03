@@ -40,6 +40,7 @@ class Fornitori {
 	function elenco($dati) {
 		global $session;
 		$html = "";
+		if (isset($dati["combotipofornitore"])) $combotipofornitore=$dati["combotipofornitore"]; else $combotipofornitore="";
 		if (isset($dati["keyword"])) $keyword=$dati["keyword"]; else $keyword="";
 		if ($session->get("TSFORNITORI")) {
 			$t=new grid(DB_PREFIX.$this->tbdb,$this->start, $this->ps, $this->oby, $this->omode);
@@ -49,6 +50,7 @@ class Fornitori {
 			$t->functionhtml = ""; //"myhtmlspecialchars";
 			$t->mostraRecordTotali=true;
 			$t->parametriDaPssare = "";
+			if($combotipofornitore) $t->parametriDaPssare.="&combotipofornitore=".urlencode($combotipofornitore);
 			if($keyword) $t->parametriDaPssare.="&keyword=".urlencode($keyword);
 			//campi da visualizzare
 			$t->campi="de_nomefornitore";
@@ -59,6 +61,10 @@ class Fornitori {
 			//query per estrarre i dati
 			$t->query="select id_fornitore,de_nomefornitore from ".DB_PREFIX."ts_fornitori #WHERE#";
 			$where = "";
+			if($combotipofornitore && $combotipofornitore!=-999) {
+				if($where!="") { $where.= " and "; }
+				$where.=" cd_tipo_fornitore='".(int)$combotipofornitore."'";
+			}
 			if($keyword) {
 				if($where!="") { $where.= " and "; }
 				$where.=" de_nomefornitore like '%$keyword%'";
@@ -98,7 +104,8 @@ class Fornitori {
 					inserimento
 				*/
 				$dati = array("id_fornitore"=>"",
-					"de_nomefornitore"=>"");
+					"de_nomefornitore"=>"",
+					"cd_tipo_fornitore"=>"");
 				$action = "aggiungiStep2";
 			}
 
@@ -110,6 +117,11 @@ class Fornitori {
 			$de_nomefornitore->label="'Nome del fornitore'";
 			$objform->addControllo($de_nomefornitore);
 
+			$cd_tipo_fornitore = new optionlist("cd_tipo_fornitore",$dati["cd_tipo_fornitore"]);
+			$cd_tipo_fornitore->loadSqlOptions("select id_tipo_fornitore,de_tipo_fornitore from ".DB_PREFIX."ts_tipi_fornitore order by de_tipo_fornitore","id_tipo_fornitore","de_tipo_fornitore","{choose}");
+			$cd_tipo_fornitore->label="'Tipo fornitore'";
+			$objform->addControllo($cd_tipo_fornitore);
+
 			$id_fornitore = new hidden("id",$dati["id_fornitore"]);
 			$op = new hidden("op",$action);
 
@@ -118,6 +130,7 @@ class Fornitori {
 			$html = str_replace("##id##", $id_fornitore->gettag(), $html);
 			$html = str_replace("##op##", $op->gettag(), $html);
 			$html = str_replace("##de_nomefornitore##", $de_nomefornitore->gettag(), $html);
+			$html = str_replace("##cd_tipo_fornitore##", $cd_tipo_fornitore->gettag(), $html);
 			$html = str_replace("##gestore##", $this->gestore, $html);
 			$html = str_replace("##ENDFORM##", $objform->endform(), $html);
 		} else {
@@ -137,11 +150,12 @@ class Fornitori {
 		//  "0" --> il tuo profilo non ti consente l'inserimento/modifica
 		global $session, $conn;
 		if ($session->get("TSFORNITORI")) {
+			$cd_tipo_fornitore = (int)$arDati["cd_tipo_fornitore"];
 			if ($arDati["id"]!="") {
 				/*
 					Modifica
 				*/
-				$sql="UPDATE ".DB_PREFIX."ts_fornitori set de_nomefornitore='##de_nomefornitore##' where id_fornitore='##id_fornitore##'";
+				$sql="UPDATE ".DB_PREFIX."ts_fornitori set de_nomefornitore='##de_nomefornitore##', cd_tipo_fornitore='{$cd_tipo_fornitore}' where id_fornitore='##id_fornitore##'";
 				$sql= str_replace("##de_nomefornitore##",$arDati["de_nomefornitore"],$sql);
 				$sql= str_replace("##id_fornitore##",$arDati["id"],$sql);
 				$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
@@ -151,7 +165,7 @@ class Fornitori {
 				/*
 					Inserimento
 				*/
-				$sql="INSERT into ".DB_PREFIX."ts_fornitori (de_nomefornitore) values('##de_nomefornitore##')";
+				$sql="INSERT into ".DB_PREFIX."ts_fornitori (de_nomefornitore,cd_tipo_fornitore) values('##de_nomefornitore##','{$cd_tipo_fornitore}')";
 				$sql= str_replace("##de_nomefornitore##",$arDati["de_nomefornitore"],$sql);
 				$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
 				$numero = $conn->insert_id;
@@ -217,6 +231,22 @@ class Fornitori {
 		$out = "";
 		foreach ($arFiltri as $k => $v) { $out.="<option value='{$k}' ".(($k."x"==$def."x")?"selected":"").">{$v}</option>"; }
 		return "<select onchange='aggiornaGriglia()' name='combofornitore' id='combofornitore'>{$out}</select>";
+	}
+
+	function getHtmlComboTipiFornitore($def="") {
+		global $conn;
+		//------------------------------------------------
+		//combo filtri per tipologia fornitore
+		$sql = "select id_tipo_fornitore,de_tipo_fornitore,(select count(*) from ".DB_PREFIX."ts_fornitori where cd_tipo_fornitore=id_tipo_fornitore) as c from ".DB_PREFIX."ts_tipi_fornitore order by de_tipo_fornitore";
+		$rs = $conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
+		$arFiltri = array("-999"=>"--{choose}--");
+		while($riga = $rs->fetch_array()) {
+			$arFiltri[$riga['id_tipo_fornitore']]=$riga['de_tipo_fornitore']." (".$riga['c'].")";
+		}
+		//------------------------------------------------
+		$out = "";
+		foreach ($arFiltri as $k => $v) { $out.="<option value='{$k}' ".(($k."x"==$def."x")?"selected":"").">{$v}</option>"; }
+		return "<select onchange='aggiornaGriglia()' name='combotipofornitore' id='combotipofornitore' class='filter'>{$out}</select>";
 	}
 
 	function getHtmlCercaBox($def="") {

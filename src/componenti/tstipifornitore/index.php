@@ -1,28 +1,22 @@
 <?php
 
-//gestione utenti component
+//gestione tipologie fornitore component
 $root="../../../";
 include($root."src/_include/config.php");
 include($root."src/_include/grid.class.php");
 include($root."src/_include/formcampi.class.php");
-include("_include/tsclienti.class.php");
-
-function numero($s) {
-	return "<div style='text-align:right'>".number_format((float)$s,0)."</div>";
-}
+include("_include/tstipifornitore.class.php");
 
 //::aggiorno posizione::
-print $ambiente->setPosizione("{Clients}");
+print $ambiente->setPosizione("{Supplier types}");
 
-$obj = new Clienti();
+$obj = new TipiFornitore();
 
 $html="";
 
 $command = postget("op");
 $parameter = postget("id");
 $keyword = postget("keyword");
-$combocliente = postget("combocliente");
-$combotipocliente = postget("combotipocliente");
 
 //esegue eventuali comandi passati
 if (isset($command)) {
@@ -69,10 +63,8 @@ if ($html=="") {
 	$html = loadTemplateAndParse ("template/elenco.html");
 	$html = str_replace("##corpo##", $obj->elenco($_POST+$_GET), $html);
 	$html = str_replace("##bottoni1##","<a href=\"$obj->linkaggiungi\" title=\"".$obj->linkaggiungi_label."\" class='aggiungi'></a>", $html);
-	// $html = str_replace("##bottoni1##","<a href=\"$obj->linkaggiungi\" title=\"{Add new item}\" class='aggiungi'></a>", $html);
 	$html = str_replace("##bottoni2##","<a href=\"$obj->linkeliminamarcate\" title=\"{Delete selected items}\" class='elimina'></a>", $html);
 
-	$html = str_replace("##combotipocliente##", $obj->getHtmlComboTipiCliente($combotipocliente), $html);
 	$html = str_replace("##keyword##", $keyword, $html);
 
 }

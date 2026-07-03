@@ -965,7 +965,6 @@ class install {
 		if($q == 0) {
 			$ar[] = "ALTER TABLE `".DB_PREFIX."frw_extrauserdata` ADD `fl_darkmode` TINYINT(1) NOT NULL DEFAULT '0';";
 
-
 			$ar[] = "CREATE TABLE `".DB_PREFIX."ts_notes` (
 			`id_note` int(11) NOT NULL,
 			`de_title` varchar(255) NOT NULL DEFAULT '',
@@ -976,16 +975,15 @@ class install {
 			`de_color` varchar(20) NOT NULL DEFAULT ''
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 
-
 			$ar[] = "ALTER TABLE `".DB_PREFIX."ts_notes`
 			ADD PRIMARY KEY (`id_note`),
 			ADD KEY `idx_cd_author` (`cd_author`),
 			ADD KEY `idx_dt_saved` (`dt_saved`);";
-
 			
 			$ar[] = "CREATE TABLE `".DB_PREFIX."ts_fornitori` (
 			`id_fornitore` int(11) UNSIGNED NOT NULL,
-			`de_nomefornitore` varchar(50) NOT NULL
+			`de_nomefornitore` varchar(50) NOT NULL,
+			`cd_tipo_fornitore` INT NOT NULL
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;";
 
 			$ar[] = "ALTER TABLE `".DB_PREFIX."ts_fornitori`
@@ -995,6 +993,8 @@ class install {
 			$ar[] = "ALTER TABLE `".DB_PREFIX."ts_fornitori`
 			MODIFY `id_fornitore` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;";
 
+			$ar[] = "ALTER TABLE `".DB_PREFIX."ts_clienti` ADD `cd_tipo_cliente` INT NOT NULL AFTER `de_nomecliente`;";
+
 			$ar[] = "CREATE TABLE `".DB_PREFIX."ts_ricavi` (`id_ricavo` INT NOT NULL AUTO_INCREMENT , `cd_job` INT NOT NULL , `dt_saved` DATETIME NOT NULL , `dt_payment` DATE NOT NULL , `nu_importo` DECIMAL(10,2) NOT NULL, `en_status` ENUM('estimate','progress claim','invoice emitted','invoice payed') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL , PRIMARY KEY (`id_ricavo`)) ENGINE = InnoDB;";
 			$ar[] = "ALTER TABLE `".DB_PREFIX."ts_ricavi`
 						ADD UNIQUE KEY `cd_job` (`cd_job`,`dt_saved`);";
@@ -1002,6 +1002,13 @@ class install {
 			$ar[] = "CREATE TABLE `".DB_PREFIX."ts_costi` (`id_costo` INT NOT NULL AUTO_INCREMENT , `cd_job` INT NOT NULL , `dt_saved` DATETIME NOT NULL , `dt_payment` DATE NOT NULL , `nu_importo` DECIMAL(10,2) NOT NULL,`en_status` ENUM('estimate','progress claim','invoice emitted','invoice payed') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL , `cd_fornitore` INT NOT NULL, PRIMARY KEY (`id_costo`)) ENGINE = InnoDB;";
 			$ar[] = "ALTER TABLE `".DB_PREFIX."ts_costi`
 						ADD UNIQUE KEY `cd_job` (`cd_job`,`dt_saved`);";
+
+			$ar[] = "CREATE TABLE `".DB_PREFIX."ts_tipi_cliente` (`id_tipo_cliente` INT NOT NULL AUTO_INCREMENT , `de_tipo_cliente` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL , PRIMARY KEY (`id_tipo_cliente`)) ENGINE = InnoDB;";
+
+			$ar[] = "CREATE TABLE `".DB_PREFIX."ts_tipi_fornitore` (`id_tipo_fornitore` INT NOT NULL AUTO_INCREMENT , `de_tipo_fornitore` VARCHAR(60) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL , PRIMARY KEY (`id_tipo_fornitore`)) ENGINE = InnoDB;";
+
+			$ar[] = "INSERT INTO `".DB_PREFIX."ts_tipi_cliente` (`id_tipo_cliente`, `de_tipo_cliente`) VALUES ('0', 'n.a.');";
+			$ar[] = "INSERT INTO `".DB_PREFIX."ts_tipi_fornitore` (`id_tipo_fornitore`, `de_tipo_fornitore`) VALUES ('0', 'n.a.');";
 
 		}
 		foreach ($ar as $s) { 
