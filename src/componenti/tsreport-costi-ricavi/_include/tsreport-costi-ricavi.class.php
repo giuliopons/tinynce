@@ -44,8 +44,19 @@ class ReportCostiRicavi {
         return $col;
     }
 
+    // Soglia stato importi -> elenco di en_status inclusi (cumulativo).
+    function statiInclusi($stato) {
+        switch($stato) {
+            case "payed":         return array("invoice payed");
+            case "invoice":       return array("invoice emitted","invoice payed");
+            case "progressclaim": return array("progress claim","invoice emitted","invoice payed");
+            case "all":
+            default:              return array("estimate","progress claim","invoice emitted","invoice payed");
+        }
+    }
+
     // Filtro condiviso per gli importi memorizzati (ts_costi/ts_ricavi):
-    // cliente via job, job attivo/specifico, date su dt_payment.
+    // cliente via job, job attivo/specifico, date su dt_payment, stato en_status.
     // $ax = alias tabella importi, $aj = alias ts_job.
     function filtroImporti($dati, $ax, $aj) {
         $w = "";
@@ -56,6 +67,8 @@ class ReportCostiRicavi {
         else                        $w .= " and $aj.id_job='".$dati['job']."'";
         if(isset($dati['dal']) && $dati['dal']) $w .= " and $ax.dt_payment>='".$dati['dal']."'";
         if(isset($dati['al'])  && $dati['al'])  $w .= " and $ax.dt_payment<='".$dati['al']."'";
+        $stati = $this->statiInclusi(isset($dati['stato']) ? $dati['stato'] : "all");
+        $w .= " and $ax.en_status IN ('".implode("','", $stati)."')";
         return $w;
     }
 
@@ -189,6 +202,18 @@ class ReportCostiRicavi {
             $gruppo->attributes=" class='filter'";
 			$objform->addControllo($gruppo);
 
+			// filtro stato importi (solo costi fornitori / ricavi)
+			$stato = new optionlist("stato", isset($dati["stato"]) ? $dati["stato"] : "all", array(
+				"all"           => "{All}",
+				"progressclaim" => "{Progress claim}",
+				"invoice"       => "{Invoice emitted}",
+				"payed"         => "{Invoice paid}",
+			));
+			$stato->obbligatorio=0;
+			$stato->label="'{Status}'";
+            $stato->attributes=" class='filter'";
+			$objform->addControllo($stato);
+
 
 			$op = new hidden("op","cerca");
 
@@ -206,6 +231,7 @@ class ReportCostiRicavi {
 			$html = str_replace("##cliente##", $cliente->gettag(), $html);
 			$html = str_replace("##job##", $job->gettag(), $html);
 			$html = str_replace("##gruppo##", $gruppo->gettag(), $html);
+			$html = str_replace("##stato##", $stato->gettag(), $html);
 			$html = str_replace("##colonne##", $colonne, $html);
 			$html = str_replace("##dal##", $dal->gettag(), $html);
 			$html = str_replace("##al##", $al->gettag(), $html);
