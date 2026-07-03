@@ -93,8 +93,9 @@ componenti/{name}/
 | `tslists` | Lists of todos component |
 | `tsnotes` | Notes component |
 | `tsfornitori` | Suppliers component |
-| `tsricavi` | Job revenues component |
+| `tsricavi` | Job revenues component (tracks an edit history in `ts_ricavi_storico`) |
 | `tscosti` | Job costs component |
+| `tsreport-costi-ricavi` | Costs/revenues report component (personnel cost, supplier costs, revenues; selectable columns) — see [REPORT-COSTI-RICAVI.md](REPORT-COSTI-RICAVI.md) |
 
 
 
@@ -109,6 +110,17 @@ componenti/{name}/
   - `execute_query($sql)` — result set
 
 **No migration system.** Schema changes are applied manually or via install wizard.
+
+### Revenue edit history (`ts_ricavi_storico`)
+
+`ts_ricavi` holds one row per revenue = its **current state** (the report and the list read
+this table as-is). Every save of a revenue also writes a **snapshot** into `ts_ricavi_storico`
+(`cd_ricavo`, `cd_utente`, `dt_modifica` + the tracked fields `dt_payment`, `nu_importo`,
+`en_status`, `de_label`), so the evolution of a revenue (estimate → progress claim → invoice
+emitted → invoice paid) can be shown in a read-only panel under the edit form. A snapshot is
+written on insert (initial version) and on update only when a tracked field actually changed;
+deleting a revenue also removes its history. Because `ts_ricavi` still stores only the latest
+value, `tsreport-costi-ricavi` needs no change — it already sums the current amount.
 
 ## Authentication & Authorization
 
