@@ -115,7 +115,8 @@ class Costi {
 					"cd_fornitore"=>"",
 					"nu_importo"=>"",
 					"dt_payment"=>"",
-					"en_status"=>"estimate");
+					"en_status"=>"estimate",
+					"de_label"=>"");
 				$action = "aggiungiStep2";
 			}
 
@@ -146,8 +147,15 @@ class Costi {
 			$en_status = new optionlist("en_status",$dati["en_status"],$this->arStati);
 			$objform->addControllo($en_status);
 
+			$de_label = new testo("de_label",$dati["de_label"],50,50);
+			$de_label->label="'Riferimento'";
+			$objform->addControllo($de_label);
+
 			$id_costo = new hidden("id",$dati["id_costo"]);
 			$op = new hidden("op",$action);
+
+			//storico modifiche (solo in modifica)
+			$storico = ($id!="") ? "<fieldset class='mainfieldset'><legend>{Change history}</legend>".$this->getStorico($id)."</fieldset>" : "";
 
 			$html = loadTemplateAndParse("template/dettaglio.html");
 			$html = str_replace("##STARTFORM##", $objform->startform(), $html);
@@ -158,6 +166,8 @@ class Costi {
 			$html = str_replace("##nu_importo##", $nu_importo->gettag(), $html);
 			$html = str_replace("##dt_payment##", $dt_payment->gettag(), $html);
 			$html = str_replace("##en_status##", $en_status->gettag(), $html);
+			$html = str_replace("##de_label##", $de_label->gettag(), $html);
+			$html = str_replace("##STORICO_PANEL##", $storico, $html);
 			$html = str_replace("##gestore##", $this->gestore, $html);
 			$html = str_replace("##ENDFORM##", $objform->endform(), $html);
 			$html = str_replace("##MONEY##", MONEY, $html);
@@ -168,6 +178,45 @@ class Costi {
 	}
 	function getDati($id) {
 		return execute_row("SELECT * from ".DB_PREFIX."ts_costi where id_costo='{$id}'");
+	}
+
+	/*
+		restituisce l'html del pannello con lo storico delle modifiche del costo.
+	*/
+	function getStorico($id) {
+		$id = (int)$id;
+		$t=new grid(DB_PREFIX."ts_costi_storico",0,50,"dt_modifica","desc","0","storicocosti");
+		$t->flagOrdinatori="off";
+		$t->mostraRecordTotali=false;
+		$t->checkboxForm=false;
+		//campi da visualizzare
+		$t->campi="dt_modifica,utente,dt_payment,nu_importo,en_status,de_label";
+		//titoli dei campi da visualizzare
+		$t->titoli="{Modified on},{Modified by},{Payment date},{Amount},{Status},{Reference}";
+		//id per la chiave
+		$t->chiave="id_storico";
+		//query per estrarre i dati
+		$t->query="select s.id_storico, s.dt_modifica, concat(u.nome,' ',u.cognome) as utente, s.dt_payment, s.nu_importo, s.en_status, s.de_label from ".DB_PREFIX."ts_costi_storico s left join ".DB_PREFIX."frw_utenti u on s.cd_utente=u.id where s.cd_costo='{$id}' order by s.dt_modifica desc";
+		$t->addCampiDate('dt_modifica',"dd/mm/yyyy hh:ii");
+		$t->addCampiDate('dt_payment',"dd/mm/yyyy");
+		$t->addCampi('nu_importo',"numero");
+		$t->addScegliDaInsieme('en_status',$this->arStati);
+		$t->arFormattazioneTD=array("nu_importo"=>"numero");
+		$texto = $t->show();
+		if (trim($texto)=="") $texto="{No changes recorded.}";
+		return $texto;
+	}
+
+	/*
+		registra uno snapshot della versione corrente del costo nello storico.
+		i parametri sono gia' escaped (addslashes) dal chiamante.
+	*/
+	function logStorico($cd_costo,$dt_payment,$nu_importo,$en_status,$de_label) {
+		global $session,$conn;
+		$cd_costo = (int)$cd_costo;
+		$cd_utente = (int)$session->get("idutente");
+		$sql="INSERT into ".DB_PREFIX."ts_costi_storico (cd_costo,cd_utente,dt_modifica,dt_payment,nu_importo,en_status,de_label) values('{$cd_costo}','{$cd_utente}',NOW(),'{$dt_payment}','{$nu_importo}','{$en_status}','{$de_label}')";
+		$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
 	}
 
 	function updateAndInsert($arDati) {
@@ -183,20 +232,35 @@ class Costi {
 			$nu_importo		= addslashes($arDati["nu_importo"]);
 			$dt_payment		= addslashes($arDati["dt_payment"]);
 			$en_status		= addslashes($arDati["en_status"]);
+			$de_label		= addslashes(substr($arDati["de_label"],0,50));
 			if ($arDati["id"]!="") {
 				/*
 					Modifica
 				*/
 				$id = (int)$arDati["id"];
-				$sql="UPDATE ".DB_PREFIX."ts_costi set cd_job='{$cd_job}', cd_fornitore='{$cd_fornitore}', nu_importo='{$nu_importo}', dt_payment='{$dt_payment}', en_status='{$en_status}' where id_costo='{$id}'";
+				//leggo lo stato corrente per capire se qualcosa e' cambiato
+				$old = $this->getDati($id);
+				$sql="UPDATE ".DB_PREFIX."ts_costi set cd_job='{$cd_job}', cd_fornitore='{$cd_fornitore}', nu_importo='{$nu_importo}', dt_payment='{$dt_payment}', en_status='{$en_status}', de_label='{$de_label}' where id_costo='{$id}'";
 				$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
+				//storico: registro solo se un campo tracciato e' cambiato (il fornitore non e' tracciato)
+				if( !empty($old) && (
+					$old["dt_payment"]        != $arDati["dt_payment"]
+					|| (float)$old["nu_importo"] != (float)$arDati["nu_importo"]
+					|| $old["en_status"]      != $arDati["en_status"]
+					|| (string)$old["de_label"]  != (string)substr($arDati["de_label"],0,50)
+				) ) {
+					$this->logStorico($id,$dt_payment,$nu_importo,$en_status,$de_label);
+				}
 				$html= "";
 			} else {
 				/*
 					Inserimento
 				*/
-				$sql="INSERT into ".DB_PREFIX."ts_costi (cd_job,dt_saved,dt_payment,en_status,cd_fornitore,nu_importo) values('{$cd_job}',NOW(),'{$dt_payment}','{$en_status}','{$cd_fornitore}','{$nu_importo}')";
+				$sql="INSERT into ".DB_PREFIX."ts_costi (cd_job,dt_saved,dt_payment,en_status,cd_fornitore,nu_importo,de_label) values('{$cd_job}',NOW(),'{$dt_payment}','{$en_status}','{$cd_fornitore}','{$nu_importo}','{$de_label}')";
 				$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
+				//storico: prima versione del costo
+				$id = (int)$conn->insert_id;
+				$this->logStorico($id,$dt_payment,$nu_importo,$en_status,$de_label);
 				$html= "";
 			}
 		} else {
@@ -215,6 +279,9 @@ class Costi {
 		if ($session->get("TSCOSTI")) {
 
 			$id = (int)$id;
+			//cancello prima lo storico collegato, poi il costo
+			$sqlst = "delete from ".DB_PREFIX."ts_costi_storico where cd_costo='{$id}'";
+			$conn->query($sqlst) or (trigger_error($conn->error."<br>$sqlst='{$sqlst}'"));
 			$sql = "delete from ".DB_PREFIX."ts_costi where id_costo='{$id}'";
 			$conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
 
