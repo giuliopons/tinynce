@@ -28,3 +28,5 @@ pons-settings.php.example
 deploy.php
 copiacore.php
 deploy.env
+BCK*
+*.sql
