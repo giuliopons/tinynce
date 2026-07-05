@@ -220,9 +220,17 @@ class ReportCostiRicavi {
 			//------------------------------------------------
 			// checkbox selezione colonne (costo personale / fornitori / ricavi)
 			$col = $this->colonneSelezionate($dati);
-			$colonne  = "<label style='margin-right:1rem;white-space:nowrap'><input type='checkbox' name='col_pers' value='1' ".($col['pers']?"checked":"")."/> {Personnel cost}</label>";
-			$colonne .= "<label style='margin-right:1rem;white-space:nowrap'><input type='checkbox' name='col_forn' value='1' ".($col['forn']?"checked":"")."/> {Supplier costs}</label>";
-			$colonne .= "<label style='margin-right:1rem;white-space:nowrap'><input type='checkbox' name='col_ric' value='1' ".($col['ric']?"checked":"")."/> {Revenues}</label>";
+
+			$cbPers = new checkbox("col_pers","1",$col['pers']);
+			$cbPers->avideo = "{Personnel cost}";
+			$cbForn = new checkbox("col_forn","1",$col['forn']);
+			$cbForn->avideo = "{Supplier costs}";
+			$cbRic  = new checkbox("col_ric","1",$col['ric']);
+			$cbRic->avideo  = "{Revenues}";
+
+			$colonne  = "<span style='margin-right:1rem;white-space:nowrap'>".$cbPers->gettag()."</span>";
+			$colonne .= "<span style='margin-right:1rem;white-space:nowrap'>".$cbForn->gettag()."</span>";
+			$colonne .= "<span style='margin-right:1rem;white-space:nowrap'>".$cbRic->gettag()."</span>";
 
 			$html = loadTemplateAndParse ("template/elenco.html");
 
@@ -570,9 +578,9 @@ class ReportCostiRicavi {
 
 			// metriche selezionate (ordine fisso) con label breve
 			$metrics = array();
-			if($col['pers']) $metrics['pers'] = "{Pers}";
-			if($col['forn']) $metrics['forn'] = "{Forn}";
 			if($col['ric'])  $metrics['ric']  = "{Ric}";
+			if($col['forn']) $metrics['forn'] = "{Forn}";
+			if($col['pers']) $metrics['pers'] = "{Pers}";
 			$nMetrics = count($metrics);
 
 			// mappe importi memorizzati per mese (id_job => YYYY-MM => tot)
@@ -662,9 +670,9 @@ class ReportCostiRicavi {
 				$r = $this->removeDoubleQuotesFromArray($r);
 
 				$out.="<tr>";
-				$out.="<td style='white-space:nowrap'>".$r['de_codice']."</td>";
-				$out.="<td>".$r['cliente']."</td>";
-				$out.="<td>".$r['commessa']."</td>";
+				$out.="<td class='nw'>".$r['de_codice']."</td>";
+				$out.="<td class='nw'>".$r['cliente']."</td>";
+				$out.="<td class='nw'>".$r['commessa']."</td>";
 
 				$csv.='"'.$r['de_codice'].'"'.";";
 				$csv.='"'.$r['cliente'].'"'.";";

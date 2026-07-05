@@ -1,37 +1,80 @@
 <!DOCTYPE html>
+
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta name="robots" content="noindex">
 
 	##JQUERYINCLUDE##
 	<script src="##root##src/template/comode.js?v=##VER##"></script>
 	<script src="template/elenco.js"></script>
 	<title>##TITLE##</title>
-    <style>
-        td.n, th.n {
-            text-align:right!important;
-        }
-
-		td.ric,th.ric {
-			border-right:1px solid #ccc;
+	<style>
+		td.n,
+		th.n {
+			text-align: right !important;
 		}
+
+		td.pers,
+		th.pers,th.mese {
+			border-right: 1px solid #ccc;
+		}
+		td.nw {
+			white-space: nowrap;
+		}
+
 		th.mese {
-			text-align:center!important;
+			text-align: center !important;
 		}
 
-		.report_print {display:none}
+		.report_print {
+			display: none
+		}
 
+		.field .switch input[type=checkbox] {
+			min-width: 4rem!important;
+		}
+		.field .switch label + span {
+			display:inline;
+			flex-shrink:1!important;
+			margin-left:0;
+		}
+		.field span.colonne {
+			display:flex;
+			gap: 1rem;
+		}
 
 		@media print {
-			body,html {width:100%;height:100%;background:transparent}
-			.panel2, a.btn, #mainmenucontainer,#mobiletoggle {display:none;}
-			.corpo, .grigliacontainer {width:100%!important}
-			div.grigliacontainer {overflow-x:unset!important}
-			.report_print {display:block;padding-bottom:1rem}
-		}
 
-    </style>
+			body,
+			html {
+				width: 100%;
+				height: 100%;
+				background: transparent
+			}
+
+			.panel2,
+			a.btn,
+			#mainmenucontainer,
+			#mobiletoggle {
+				display: none;
+			}
+
+			.corpo,
+			.grigliacontainer {
+				width: 100% !important
+			}
+
+			div.grigliacontainer {
+				overflow-x: unset !important
+			}
+
+			.report_print {
+				display: block;
+				padding-bottom: 1rem
+			}
+		}
+	</style>
 
 
 </head>
@@ -42,58 +85,58 @@
 		<div class="titlecontainer">
 
 			<h1 class='title'>##TITLE##</h1>
-			
+
 		</div>
 
 		<div class="filters">
 
 			##STARTFORM##
-            ##op##
-               
-                    <div class="field">
-                        <label>{From}:</label>
-                        <span>##dal##</span>
-                    </div>
-                    <div class="field">
-                        <label>{To}:</label>
-                        <span>##al##</span>
-                    </div>
-                                   
-                
-				<div class="field">
-					<label>{Client}:</label>
-					<span class="icon-filter">##cliente##</span>
-				</div>
+			##op##
 
-                <div class="field">
-					<label>{Job}:</label>
-					<span class="icon-filter">##job##</span>
-				</div>
+			<div class="field">
+				<label>{From}:</label>
+				<span>##dal##</span>
+			</div>
+			<div class="field">
+				<label>{To}:</label>
+				<span>##al##</span>
+			</div>
 
-				<div class="field empty" style="flex:1 1 100%;"></div>
 
-                <div class="field">
-					<label>{Tipo di report}:</label>
-					<span class="icon-filter">##gruppo##</span>
-				</div>
+			<div class="field">
+				<label>{Client}:</label>
+				<span class="icon-filter">##cliente##</span>
+			</div>
 
-                <div class="field">
-					<label>{Status}:</label>
-					<span class="icon-filter">##stato##</span>
-				</div>
+			<div class="field">
+				<label>{Job}:</label>
+				<span class="icon-filter">##job##</span>
+			</div>
 
-                <div class="field">
-					<label>{Columns}:</label>
-					<span>##colonne##</span>
-				</div>
+			<div class="field empty" style="flex:1 1 100%;"></div>
 
-                <div class="field">
-					<label>&nbsp;</label>
-					<span><a href='#' id='submit' class='btn'>{Search}</a></span>
-				</div>
-																	
+			<div class="field">
+				<label>{Tipo di report}:</label>
+				<span class="icon-filter">##gruppo##</span>
+			</div>
+
+			<div class="field">
+				<label>{Status}:</label>
+				<span class="icon-filter">##stato##</span>
+			</div>
+
+			<div class="field">
+				<label>{Columns}:</label>
+				<span class="colonne">##colonne##</span>
+			</div>
+
+			<div class="field">
+				<label>&nbsp;</label>
+				<span><a href='#' id='submit' class='btn'>{Search}</a></span>
+			</div>
+
 			##ENDFORM##
-            
+
 		</div>
 	</div>
 
@@ -102,4 +145,5 @@
 	</div>
 
 </body>
+
 </html>
