@@ -613,10 +613,12 @@ class ReportCostiRicavi {
 				$out.="<th rowspan='2'>{Code}</th>";
 				$out.="<th rowspan='2'>{Client}</th>";
 				$out.="<th rowspan='2'>{Job}</th>";
-				foreach($mesi as $mese) $out.="<th class='n' colspan='".$nMetrics."'>".$mese['label']."</th>";
+				foreach($mesi as $mese) $out.="<th class='n mese' colspan='".$nMetrics."'>".$mese['label']."</th>";
 				$out.="</tr>";
 				$out.="<tr>";
-				foreach($mesi as $mese) foreach($metrics as $mlabel) $out.="<th class='n'>".$mlabel."</th>";
+				foreach($mesi as $mese) foreach($metrics as $mk=> $mlabel) {
+					$out.="<th class='n ".$mk."'>".$mlabel."</th>";
+				}
 				$out.="</tr>";
 
 				$csv ="";
@@ -674,7 +676,7 @@ class ReportCostiRicavi {
 						if($mk=='pers')     $val = isset($fieldsAr[$ym]) ? $fieldsAr[$ym] : 0;
 						elseif($mk=='forn') $val = isset($mapForn[$id_job][$ym]) ? $mapForn[$id_job][$ym] : 0;
 						else                $val = isset($mapRic[$id_job][$ym])  ? $mapRic[$id_job][$ym]  : 0;
-						$out.="<td class='n'>".$this->money($val,0)."</td>";
+						$out.="<td class='n {$mk}'>".$this->money($val,0)."</td>";
 						$csv.='"'.numberf($val,2).'"'.";";
 					}
 				}
