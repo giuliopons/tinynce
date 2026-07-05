@@ -12,6 +12,27 @@
 		function confermaDeleteCheck(theForm) {
 			confermaDeleteCheckMsg(theForm, "{Do you confirm to delete the selected revenues?}");
 		}
+		//popola la tendina progetti in base al cliente scelto (riusa l'endpoint di tsreport)
+		function loadjobs(objCliente){
+			var v = objCliente.options[objCliente.selectedIndex].value;
+			$('#combojob').html('<option>...</option>');
+			$.ajax({ 'type':'GET', 'url':'../tsreport/elencojob.php?id='+v,
+				'success':function(r){
+					if(r){
+						var rows = r.split('|');
+						$('#combojob').html('');
+						for(var i=0;i<rows.length-1;i++){
+							var row = rows[i];
+							var p = row.indexOf(',');
+							var val = row.substring(0,p);
+							var lab = row.substring(p+1);
+							$('#combojob').append('<option value="'+val+'">'+lab+'</option>');
+						}
+					}
+				},
+				'error':function(){ alert('errore'); }
+			});
+		}
 		</script>
 </head>
 <body>
@@ -29,8 +50,27 @@
 		<div class="filters">
 			<form id='filtri' method='get' name='filtri'>
 				<div class="field">
+					<label>{From}:</label>
+					<span>##dal##</span>
+				</div>
+				<div class="field">
+					<label>{To}:</label>
+					<span>##al##</span>
+				</div>
+				<div class="field">
+					<label>{Client}:</label>
+					<span class="icon-filter">##combocliente##</span>
+				</div>
+				<div class="field">
+					<label>{Job}:</label>
+					<span class="icon-filter">##combojob##</span>
+				</div>
+				<div class="field">
 					<label>{Find}:</label>
 					<span class="icon-search"><input type="text" name="keyword" class='find' id="keyword" value="##keyword##" onkeypress="submitonenter('filtri',event,this)"/></span>
+				</div>
+				<div class="field">
+					<input type="button" value="{Filter}" onclick="aggiornaGriglia('filtri',{})"/>
 				</div>
 			</form>
 		</div>

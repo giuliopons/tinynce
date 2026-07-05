@@ -20,7 +20,14 @@ $html="";
 
 $command = postget("op");
 $parameter = postget("id");
-$keyword = postget("keyword");
+
+//filtri elenco (GET > POST > SESSION > default), persistiti con base sessione "costi"
+$keyword  = setVariabile("keyword","","costi");
+$dal      = setVariabile("dal", date("Y")."-01-01", "costi");
+$al       = setVariabile("al",  date("Y-m-d"),       "costi");
+$cliente  = setVariabile("combocliente","","costi");
+$job      = setVariabile("combojob","","costi");
+$filtri   = array("keyword"=>$keyword,"dal"=>$dal,"al"=>$al,"combocliente"=>$cliente,"combojob"=>$job);
 
 //esegue eventuali comandi passati
 if (isset($command)) {
@@ -65,11 +72,17 @@ if (isset($command)) {
 if ($html=="") {
 
 	$html = loadTemplateAndParse ("template/elenco.html");
-	$html = str_replace("##corpo##", $obj->elenco($_POST+$_GET), $html);
+	$html = str_replace("##corpo##", $obj->elenco($_POST+$_GET+$filtri), $html);
 	$html = str_replace("##bottoni1##","<a href=\"$obj->linkaggiungi\" title=\"".$obj->linkaggiungi_label."\" class='aggiungi'></a>", $html);
 	$html = str_replace("##bottoni2##","<a href=\"$obj->linkeliminamarcate\" title=\"{Delete selected items}\" class='elimina'></a>", $html);
 
 	$html = str_replace("##keyword##", $keyword, $html);
+	$html = str_replace("##combocliente##", $obj->getHtmlComboClienti($cliente), $html);
+	$html = str_replace("##combojob##",     $obj->getHtmlComboJob($job,$cliente), $html);
+	$dalF = new data("dal",$dal,"aaaa-mm-gg","filtri");
+	$alF  = new data("al", $al, "aaaa-mm-gg","filtri");
+	$html = str_replace("##dal##", $dalF->gettag(), $html);
+	$html = str_replace("##al##",  $alF->gettag(),  $html);
 
 }
 

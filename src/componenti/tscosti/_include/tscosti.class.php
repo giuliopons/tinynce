@@ -50,6 +50,10 @@ class Costi {
 		global $session;
 		$html = "";
 		if (isset($dati["keyword"])) $keyword=$dati["keyword"]; else $keyword="";
+		$cliente = isset($dati['combocliente']) ? $dati['combocliente'] : '';
+		$job     = isset($dati['combojob'])     ? $dati['combojob']     : '';
+		$dal     = isset($dati['dal'])          ? $dati['dal']          : '';
+		$al      = isset($dati['al'])           ? $dati['al']           : '';
 		if ($session->get("TSCOSTI")) {
 			$t=new grid(DB_PREFIX.$this->tbdb,$this->start, $this->ps, $this->oby, $this->omode);
 			$t->checkboxFormAction=$this->gestore;
@@ -59,18 +63,38 @@ class Costi {
 			$t->mostraRecordTotali=true;
 			$t->parametriDaPssare = "";
 			if($keyword) $t->parametriDaPssare.="&keyword=".urlencode($keyword);
+			if($dal)             $t->parametriDaPssare.="&dal=".urlencode($dal);
+			if($al)              $t->parametriDaPssare.="&al=".urlencode($al);
+			if($cliente!=='')    $t->parametriDaPssare.="&combocliente=".urlencode($cliente);
+			if($job!=='')        $t->parametriDaPssare.="&combojob=".urlencode($job);
 			//campi da visualizzare
-			$t->campi="job,de_nomefornitore,nu_importo,dt_payment,en_status";
+			$t->campi="job,de_nomefornitore,nu_importo,dt_payment,en_status,de_label";
 			//titoli dei campi da visualizzare
-			$t->titoli="{Job},{Supplier},{Amount},{Payment date},{Status}";
+			$t->titoli="{Job},{Supplier},{Amount},{Payment date},{Status},{Reference}";
 			//id per fare i link
 			$t->chiave="id_costo";
 			//query per estrarre i dati
-			$t->query="select c.id_costo, concat(j.de_codice,' - ',j.de_nomejob) as job, f.de_nomefornitore, c.nu_importo, c.dt_payment, c.en_status from ".DB_PREFIX."ts_costi c left join ".DB_PREFIX."ts_job j on c.cd_job=j.id_job left join ".DB_PREFIX."ts_fornitori f on c.cd_fornitore=f.id_fornitore #WHERE#";
+			$t->query="select c.id_costo, concat(j.de_codice,' - ',j.de_nomejob) as job, f.de_nomefornitore, c.nu_importo, c.dt_payment, c.en_status, c.de_label from ".DB_PREFIX."ts_costi c left join ".DB_PREFIX."ts_job j on c.cd_job=j.id_job left join ".DB_PREFIX."ts_fornitori f on c.cd_fornitore=f.id_fornitore #WHERE#";
 			$where = "";
 			if($keyword) {
 				if($where!="") { $where.= " and "; }
 				$where.=" (j.de_nomejob like '%$keyword%' or j.de_codice like '%$keyword%' or f.de_nomefornitore like '%$keyword%') ";
+			}
+			if($cliente!=='' && (int)$cliente>0) {
+				if($where!="") { $where.= " and "; }
+				$where.=" j.cd_cliente=".(int)$cliente." ";
+			}
+			if($job!=='' && (int)$job>0) {
+				if($where!="") { $where.= " and "; }
+				$where.=" c.cd_job=".(int)$job." ";
+			}
+			if(preg_match('/^\d{4}-\d{2}-\d{2}$/',$dal)) {
+				if($where!="") { $where.= " and "; }
+				$where.=" c.dt_payment>='".$dal."' ";
+			}
+			if(preg_match('/^\d{4}-\d{2}-\d{2}$/',$al)) {
+				if($where!="") { $where.= " and "; }
+				$where.=" c.dt_payment<='".$al."' ";
 			}
 			if($where) {
 				$t->query = str_replace("#WHERE#"," where {$where}",$t->query);
@@ -316,6 +340,42 @@ class Costi {
 	function getHtmlCercaBox($def="") {
 		//------------------------------------------------
 		return "<input type='text' name='keyword' id='keyword' value=\"{$def}\"/>";
+	}
+
+	/*
+		tendina clienti per il filtro dell'elenco.
+		onchange popola la tendina progetti (combojob) via ../tsreport/elencojob.php
+	*/
+	function getHtmlComboClienti($def="") {
+		global $conn;
+		$sql = "select id_cliente,de_nomecliente from ".DB_PREFIX."ts_clienti order by de_nomecliente";
+		$rs = $conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
+		$arFiltri = array(""=>"--{All}--");
+		while($riga = $rs->fetch_array()) {
+			$arFiltri[$riga['id_cliente']]=$riga['de_nomecliente'];
+		}
+		$out = "";
+		foreach ($arFiltri as $k => $v) { $out.="<option value='{$k}' ".(($k."x"==$def."x")?"selected":"").">{$v}</option>"; }
+		return "<select onchange='loadjobs(this)' name='combocliente' id='combocliente' class='filter'>{$out}</select>";
+	}
+
+	/*
+		tendina progetti (job) per il filtro dell'elenco, popolata per il cliente selezionato.
+		coerente con il formato di ../tsreport/elencojob.php (label = de_codice + ' ' + de_nomejob)
+	*/
+	function getHtmlComboJob($def="",$cliente="") {
+		global $conn;
+		$arFiltri = array(""=>"{All}");
+		if($cliente!=='' && (int)$cliente>0) {
+			$sql = "select id_job,de_codice,de_nomejob from ".DB_PREFIX."ts_job where cd_cliente='".(int)$cliente."' order by de_codice";
+			$rs = $conn->query($sql) or (trigger_error($conn->error."<br>$sql='{$sql}'"));
+			while($riga = $rs->fetch_array()) {
+				$arFiltri[$riga['id_job']]=$riga['de_codice']." ".$riga['de_nomejob'];
+			}
+		}
+		$out = "";
+		foreach ($arFiltri as $k => $v) { $out.="<option value='{$k}' ".(($k."x"==$def."x")?"selected":"").">{$v}</option>"; }
+		return "<select name='combojob' id='combojob' class='filter'>{$out}</select>";
 	}
 }
 ?>
