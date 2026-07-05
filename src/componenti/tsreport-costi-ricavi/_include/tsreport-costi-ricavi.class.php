@@ -103,6 +103,95 @@ class ReportCostiRicavi {
         return $map;
     }
 
+    // Etichette tradotte degli stati (fallback quando de_label e' vuota).
+    function labelStato($en_status) {
+        $ar = array(
+            "estimate"        => "{Estimate}",
+            "progress claim"  => "{Progress claim}",
+            "invoice emitted" => "{Invoice emitted}",
+            "invoice payed"   => "{Invoice paid}",
+        );
+        return isset($ar[$en_status]) ? $ar[$en_status] : $en_status;
+    }
+
+    // Dettaglio delle voci (ricavi o costi) che compongono l'importo di una cella
+    // del report std, per un job e un mese (YYYY-MM), rispettando il filtro stato.
+    // $tabella = "ts_ricavi" | "ts_costi". Ritorna l'HTML delle righe (unite da "+").
+    function dettaglioImporti($tabella, $id_job, $ym, $stato) {
+        global $conn;
+        $id_job = (int)$id_job;
+        if(!preg_match('/^(\d{4})-(\d{2})$/', $ym, $m)) return "";
+        $anno = (int)$m[1];
+        $mese = (int)$m[2];
+        $isRicavi   = ($tabella=="ts_ricavi");
+        $tabStorico = $isRicavi ? "ts_ricavi_storico" : "ts_costi_storico";
+        $chiaveId   = $isRicavi ? "id_ricavo" : "id_costo";
+        $chiaveFk   = $isRicavi ? "cd_ricavo" : "cd_costo";
+
+        $stati = $this->statiInclusi($stato);
+        $sql = "SELECT ".$chiaveId." AS id, de_label, en_status
+            FROM ".DB_PREFIX.$tabella."
+            WHERE cd_job='".$id_job."' AND YEAR(dt_payment)='".$anno."' AND MONTH(dt_payment)='".$mese."'
+            AND en_status IN ('".implode("','", $stati)."')
+            ORDER BY dt_payment, ".$chiaveId;
+        $rs = $conn->query($sql) or die($conn->error." SQL = ".$sql);
+
+        $voci = array();
+        while($r = $rs->fetch_array()) {
+            // label corrente della voce: de_label, altrimenti nome tradotto dello stato.
+            // htmlspecialchars non tocca le graffe, quindi i placeholder {..} restano risolvibili.
+            $label = ($r['de_label']!=="" && $r['de_label']!==null)
+                ? htmlspecialchars($r['de_label'])
+                : $this->labelStato($r['en_status']);
+            // per le fatture, mostro anche l'ultimo SAL (progress claim) dallo storico
+            if($r['en_status']=="invoice emitted" || $r['en_status']=="invoice payed") {
+                $sqlSal = "SELECT de_label FROM ".DB_PREFIX.$tabStorico."
+                    WHERE ".$chiaveFk."='".(int)$r['id']."' AND en_status='progress claim'
+                    ORDER BY dt_modifica DESC LIMIT 1";
+                $sal = execute_scalar($sqlSal);
+                if($sal!==null && trim($sal)!=="") {
+                    $label = htmlspecialchars($sal)." &rarr; ".$label;
+                }
+            }
+            $voci[] = $label;
+        }
+        return $this->renderVoci($voci);
+    }
+
+    // Dettaglio dei reparti che hanno prodotto il costo personale di una cella
+    // del report std, per un job e un mese (YYYY-MM). Ritorna l'HTML (voci unite da "+").
+    function dettaglioPersonale($id_job, $ym) {
+        global $conn;
+        $id_job = (int)$id_job;
+        if(!preg_match('/^(\d{4})-(\d{2})$/', $ym, $m)) return "";
+        $anno = (int)$m[1];
+        $mese = (int)$m[2];
+        $sql = "SELECT DISTINCT rp.de_nomereparto AS nome
+            FROM ".DB_PREFIX."ts_ore c
+            LEFT JOIN ".DB_PREFIX."ts_reparti rp ON rp.id_reparto=c.cd_reparto_ora
+            WHERE c.cd_job='".$id_job."' AND YEAR(c.dt_giorno)='".$anno."' AND MONTH(c.dt_giorno)='".$mese."'
+            ORDER BY rp.de_nomereparto";
+        $rs = $conn->query($sql) or die($conn->error." SQL = ".$sql);
+        $voci = array();
+        while($r = $rs->fetch_array()) {
+            $nome = ($r['nome']!==null && trim($r['nome'])!=="") ? $r['nome'] : "-";
+            $voci[] = htmlspecialchars($nome);
+        }
+        return $this->renderVoci($voci);
+    }
+
+    // Rende un elenco di voci come righe, con il simbolo "+" in coda a tutte tranne l'ultima.
+    function renderVoci($voci) {
+        if(count($voci)==0) return "<div class='rcr-pop-row'>{No data}</div>";
+        $out = "";
+        $n = count($voci);
+        foreach($voci as $i=>$v) {
+            $plus = ($i < $n-1) ? " <span class='rcr-pop-plus'>+</span>" : "";
+            $out .= "<div class='rcr-pop-row'>".$v.$plus."</div>";
+        }
+        return $out;
+    }
+
 	function getPannello($dati) {
 
 		if(!isset($dati["job"])) {
@@ -684,7 +773,15 @@ class ReportCostiRicavi {
 						if($mk=='pers')     $val = isset($fieldsAr[$ym]) ? $fieldsAr[$ym] : 0;
 						elseif($mk=='forn') $val = isset($mapForn[$id_job][$ym]) ? $mapForn[$id_job][$ym] : 0;
 						else                $val = isset($mapRic[$id_job][$ym])  ? $mapRic[$id_job][$ym]  : 0;
-						$out.="<td class='n {$mk}'>".$this->money($val,0)."</td>";
+						// celle con importo != 0: cliccabili per il dettaglio (popup via ajax)
+						$cls = "n ".$mk;
+						$data = "";
+						if(round((float)$val,0) != 0) {
+							$cls .= " rcr-cell";
+							$data = " data-metric='".$mk."' data-job='".$id_job."' data-ym='".$ym."'"
+								." data-stato='".htmlspecialchars(isset($dati['stato'])?$dati['stato']:"all")."'";
+						}
+						$out.="<td class='".$cls."'".$data.">".$this->money($val,0)."</td>";
 						$csv.='"'.numberf($val,2).'"'.";";
 					}
 				}

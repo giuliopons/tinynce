@@ -63,5 +63,63 @@ jQuery(document).ready(function($){
 		}
 		if(check) checkForm();
 	});
-	
+
+	//
+	// popup di dettaglio delle celle del report std (costi / ricavi / personale)
+	//
+	var $rcrPop = null;   // elemento popup corrente
+	var rcrCell = null;   // cella (DOM) a cui e' associato il popup aperto
+
+	function rcrClosePopup() {
+		if($rcrPop) { $rcrPop.remove(); $rcrPop = null; }
+		rcrCell = null;
+	}
+
+	function rcrOpenPopup(cell) {
+		var $cell = $(cell);
+		$rcrPop = $("<div class='rcr-popup'><a href='#' class='rcr-pop-close' title='"+_e('Close')+"'>&times;</a><div class='rcr-pop-body'>"+_e('Loading')+"...</div></div>");
+		$("body").append($rcrPop);
+		rcrCell = cell;
+
+		// posizionamento sotto la cella, dentro il viewport
+		var off = $cell.offset();
+		var top = off.top + $cell.outerHeight() + 4;
+		var left = off.left;
+		var maxLeft = $(window).scrollLeft() + $(window).width() - $rcrPop.outerWidth() - 8;
+		if(left > maxLeft) left = Math.max($(window).scrollLeft()+8, maxLeft);
+		$rcrPop.css({ top: top+"px", left: left+"px" });
+
+		$.ajax({
+			'type': 'GET',
+			'url': 'dettaglio.php',
+			'data': {
+				metric: $cell.data('metric'),
+				job:    $cell.data('job'),
+				ym:     $cell.data('ym'),
+				stato:  $cell.data('stato')
+			},
+			'success': function(resp) {
+				if($rcrPop) $rcrPop.find('.rcr-pop-body').html(resp && resp.trim()!="" ? resp : _e('No data'));
+			},
+			'error': function() {
+				if($rcrPop) $rcrPop.find('.rcr-pop-body').html(_e('No data'));
+			}
+		});
+	}
+
+	$(document).on('click', 'td.rcr-cell', function(e){
+		e.preventDefault();
+		e.stopPropagation();
+		var wasOpen = (rcrCell === this);
+		rcrClosePopup();
+		if(!wasOpen) rcrOpenPopup(this);   // toggle sulla stessa cella
+	});
+
+	// chiusura: pulsante x, click fuori, Esc
+	$(document).on('click', '.rcr-pop-close', function(e){ e.preventDefault(); rcrClosePopup(); });
+	$(document).on('click', function(e){
+		if($rcrPop && !$(e.target).closest('.rcr-popup').length) rcrClosePopup();
+	});
+	$(document).on('keydown', function(e){ if(e.key === 'Escape') rcrClosePopup(); });
+
 });

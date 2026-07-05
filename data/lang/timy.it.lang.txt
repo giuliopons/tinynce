@@ -403,3 +403,5 @@ LABEL,TRANSLATION
 "Ric","Fatt"
 "Select at least one column","Seleziona almeno una colonna"
 "Columns","Colonne"
+"Loading","Caricamento"
+"No data","Nessun dato"

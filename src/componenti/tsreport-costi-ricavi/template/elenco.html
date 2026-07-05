@@ -31,6 +31,38 @@
 			display: none
 		}
 
+		/* celle cliccabili + popup di dettaglio */
+		td.rcr-cell {
+			cursor: pointer;
+			text-decoration: underline dotted;
+		}
+		.rcr-popup {
+			position: absolute;
+			z-index: 9999;
+			min-width: 8rem;
+			max-width: 22rem;
+			background: #fff;
+			border: 1px solid #999;
+			border-radius: 4px;
+			box-shadow: 0 2px 8px rgba(0,0,0,.25);
+			padding: .6rem 1.6rem .6rem .7rem;
+			font-size: .85rem;
+			line-height: 1.4;
+			white-space: nowrap;
+		}
+		.rcr-pop-close {
+			position: absolute;
+			top: .1rem;
+			right: .35rem;
+			text-decoration: none;
+			color: #999;
+			font-size: 1.1rem;
+			line-height: 1;
+		}
+		.rcr-pop-close:hover { color: #333; }
+		.rcr-pop-row { padding: .05rem 0; }
+		.rcr-pop-plus { color: #999; }
+
 		.field .switch input[type=checkbox] {
 			min-width: 4rem!important;
 		}
@@ -73,6 +105,10 @@
 				display: block;
 				padding-bottom: 1rem
 			}
+
+			.rcr-popup { display: none !important; }
+
+			td.rcr-cell { text-decoration: none; }
 		}
 	</style>
 

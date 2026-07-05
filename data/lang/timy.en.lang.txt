@@ -403,3 +403,5 @@ LABEL,TRANSLATION
 "Ric","Rev"
 "Select at least one column","Select at least one column"
 "Columns","Columns"
+"Loading","Loading"
+"No data","No data"
