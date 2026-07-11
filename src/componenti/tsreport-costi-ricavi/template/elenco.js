@@ -122,4 +122,164 @@ jQuery(document).ready(function($){
 	});
 	$(document).on('keydown', function(e){ if(e.key === 'Escape') rcrClosePopup(); });
 
+	//
+	// matita di modifica dentro il popup: apre il dialog di modifica del ricavo/costo
+	//
+	$(document).on('click', '.rcr-edit', function(e){
+		e.preventDefault();
+		e.stopPropagation();
+		var metric = $(this).data('metric');
+		var id     = $(this).data('id');
+		rcrClosePopup();
+		rcrOpenEditDialog(metric, id, "", "");
+	});
+
+	//
+	// cella vuota (ricavo/costo): apre il dialog di inserimento pre-compilato con job e mese
+	//
+	$(document).on('click', 'td.rcr-empty', function(e){
+		e.preventDefault();
+		e.stopPropagation();
+		rcrOpenEditDialog($(this).data('metric'), "", $(this).data('job'), $(this).data('ym'));
+	});
+
 });
+
+
+//
+// Helpers per il dialog di modifica/inserimento (pattern replicato da tsplanning).
+//
+
+// estrae lo <script> con checkForm() dalla risposta, lo modifica per non inviare il form
+// (submit() -> return true) e lo re-inietta nel #confirmBox, cosi' la validazione e' disponibile.
+function moveCheckFormFunction($response) {
+	const scripts = $response.match(/<script[\s\S]*?<\/script>/gi);
+	if (scripts) {
+		scripts.forEach(scriptTag => {
+			const scriptContent = scriptTag.replace(/<script>|<\/script>/gi, '');
+			const scriptElement = document.createElement('script');
+			scriptElement.text = scriptContent.replace("submit();","return true;");
+			document.getElementById("confirmBox").appendChild(scriptElement);
+		});
+	}
+}
+
+// evita che Invio in un campo di testo invii davvero il form (che navigherebbe a crud.php)
+function avoidSubmitOnEnter( inputField ) {
+	if(!inputField) return;
+	inputField.addEventListener("keydown", function(event) {
+		if (event.key === "Enter" && inputField.tagName!="TEXTAREA") {
+			event.preventDefault();
+		}
+	});
+}
+
+// aggiunge il pulsante Elimina al dialog
+function addDeleteButtonToConfirmBox( label, callback) {
+	const a = document.createElement("a");
+	a.setAttribute("id", "thirdBtn");
+	a.setAttribute("href", "#");
+	a.setAttribute("class", "btn");
+	a.innerHTML = label;
+	document.getElementById("confirmBox").appendChild(a);
+	document.getElementById("thirdBtn").addEventListener("click", function(e) {
+		e.preventDefault();
+		callback();
+	});
+}
+
+// aggiunge il quarto pulsante "Apri storico" (link a nuova finestra) dopo il pulsante Elimina
+function addHistoryButtonToConfirmBox( label, url ) {
+	const a = document.createElement("a");
+	a.setAttribute("id", "fourthBtn");
+	a.setAttribute("href", url);
+	a.setAttribute("target", "_blank");
+	a.setAttribute("class", "btn");
+	a.innerHTML = label;
+	document.getElementById("confirmBox").appendChild(a);
+}
+
+// invia i dati del form (save o delete) a crud.php
+function rcrSaveImporto( data, callback ) {
+	$.ajax({	'type' : 'POST',
+		'url' : 'crud.php',
+		'data' : data,
+		'processData': false,
+		'success' : function( $response ) {
+			if($response == "ok") {
+				callback();
+			} else {
+				alert( $response.split("|")[0] == 'ko' ? $response.split("|")[1] : $response );
+			}
+		},
+		'error' : function () { alert("errore"); }
+	});
+}
+
+// apre il dialog: metric = 'ric'|'forn'; id valorizzato = modifica, id vuoto = inserimento
+function rcrOpenEditDialog( metric, id, job, ym ) {
+	id  = id  || "";
+	job = job || "";
+	ym  = ym  || "";
+	$.ajax({	'type' : 'GET',
+		'url' : 'crud.php?op=getform&metric=' + metric + '&id=' + id + '&job=' + job + '&ym=' + ym,
+		'success' : function( $response ) {
+			if(!$response || $response.trim()=="0" || $response.trim()=="") {
+				alert(_e("You're not authorized."));
+				return;
+			}
+
+			// tolgo lo <script> dal markup visibile (verra' re-iniettato da moveCheckFormFunction)
+			const htmlContent = $response.replace(/<script[\s\S]*?<\/script>/gi, '');
+
+			var isEdit = (parseInt(id) > 0);
+			// NB: gconfirm/createCustomConfirm traduce gia' il titolo con _e() al suo interno,
+			// quindi qui passo la chiave grezza (altrimenti verrebbe tradotta due volte).
+			var title  = metric == 'ric'
+				? ( isEdit ? "Edit revenue" : "New revenue" )
+				: ( isEdit ? "Edit cost"    : "New cost" );
+
+			// il pulsante OK del dialog fa da Salva
+			gconfirm( htmlContent, function(){
+				var result = checkForm();
+				if (result === true) {
+					rcrSaveImporto( jQuery("#confirmBox form").serialize(), function(){
+						removeCustomAlert();
+						rcrRefreshReport();
+					});
+				}
+				return result === true ? null : false;
+			}, _e("OK"), _e("CANCEL"), function(){ /* annulla */ }, title );
+
+			moveCheckFormFunction($response);
+			jQuery('#confirmBox form').find('input[type=text]').each(function(){ avoidSubmitOnEnter(this); });
+
+			// in modifica: pulsante Elimina + pulsante "Apri storico" (apre l'editor del record,
+			// con lo storico completo, in una nuova finestra)
+			if(isEdit) {
+				addDeleteButtonToConfirmBox( _e("Delete"), function() {
+					if(!confirm(_e("Are you sure?"))) return;
+					jQuery("#confirmBox form [name=op]").val('delete');
+					rcrSaveImporto( jQuery("#confirmBox form").serialize(), function(){
+						removeCustomAlert();
+						rcrRefreshReport();
+					});
+				});
+				var histUrl = (metric == 'forn' ? '../tscosti' : '../tsricavi') + '/index.php?op=modifica&id=' + id;
+				addHistoryButtonToConfirmBox( _e("Open history"), histUrl );
+			}
+		},
+		'error' : function () { alert("errore"); }
+	});
+}
+
+// ricarica la griglia del report ri-eseguendo la ricerca corrente (POST del form filtri)
+function rcrRefreshReport() {
+	var $form = $('.filters form').first();
+	if(!$form.length) $form = $('form').first();
+	var data = $form.serialize(); // contiene gia' l'hidden op=cerca
+	$('.corpo').css('opacity', .5);
+	$('<div>').load('index.php .corpo', data, function(){
+		$('.corpo').html( $(this).find('.corpo').html() ).css('opacity', 1);
+	});
+}

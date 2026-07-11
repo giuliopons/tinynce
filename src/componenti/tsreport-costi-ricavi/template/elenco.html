@@ -15,10 +15,25 @@
 			text-align: right !important;
 		}
 
-		td.pers,
-		th.pers,th.mese {
+		th.mese {
 			border-right: 1px solid #ccc;
 		}
+		td.ric,
+		th.ric {
+			border-left: 1px solid #ccc!important;
+		}
+		td.n.neg {
+			color: #f00;
+		}
+
+		/* gruppo colonna Totale (report per mese) */
+		td.total,
+		th.total {
+			border-left: 2px solid #999;
+			font-weight: bold;
+		}
+		/* colonna Delta: leggera evidenziazione */
+		td.delta { background: #fafafa; }
 		td.nw {
 			white-space: nowrap;
 		}
@@ -62,6 +77,16 @@
 		.rcr-pop-close:hover { color: #333; }
 		.rcr-pop-row { padding: .05rem 0; }
 		.rcr-pop-plus { color: #999; }
+
+		/* matita di modifica nel popup + celle vuote cliccabili per inserimento */
+		.rcr-edit {
+			cursor: pointer;
+			margin-left: .4rem;
+			color: #888;
+		}
+		.rcr-edit:hover { color: #333; }
+		td.rcr-empty { cursor: pointer; }
+		td.rcr-empty:hover { background: #f3f7ff; }
 
 		.field .switch input[type=checkbox] {
 			min-width: 4rem!important;
@@ -109,6 +134,8 @@
 			.rcr-popup { display: none !important; }
 
 			td.rcr-cell { text-decoration: none; }
+			.rcr-edit { display: none !important; }
+			td.rcr-empty { cursor: default; background: transparent !important; }
 		}
 	</style>
 

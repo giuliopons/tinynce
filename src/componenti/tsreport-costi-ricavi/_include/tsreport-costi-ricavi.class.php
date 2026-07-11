@@ -118,7 +118,7 @@ class ReportCostiRicavi {
     // del report std, per un job e un mese (YYYY-MM), rispettando il filtro stato.
     // $tabella = "ts_ricavi" | "ts_costi". Ritorna l'HTML delle righe (unite da "+").
     function dettaglioImporti($tabella, $id_job, $ym, $stato) {
-        global $conn;
+        global $conn,$session;
         $id_job = (int)$id_job;
         if(!preg_match('/^(\d{4})-(\d{2})$/', $ym, $m)) return "";
         $anno = (int)$m[1];
@@ -127,6 +127,9 @@ class ReportCostiRicavi {
         $tabStorico = $isRicavi ? "ts_ricavi_storico" : "ts_costi_storico";
         $chiaveId   = $isRicavi ? "id_ricavo" : "id_costo";
         $chiaveFk   = $isRicavi ? "cd_ricavo" : "cd_costo";
+        // matita di modifica per ogni voce: solo per admin/superadmin
+        $metric  = $isRicavi ? "ric" : "forn";
+        $canEdit = in_array($session->get("idprofilo"), array(20,999999));
 
         $stati = $this->statiInclusi($stato);
         $sql = "SELECT ".$chiaveId." AS id, de_label, en_status
@@ -143,15 +146,25 @@ class ReportCostiRicavi {
             $label = ($r['de_label']!=="" && $r['de_label']!==null)
                 ? htmlspecialchars($r['de_label'])
                 : $this->labelStato($r['en_status']);
-            // per le fatture, mostro anche l'ultimo SAL (progress claim) dallo storico
+            // per le fatture, mostro anche l'ultimo SAL (progress claim) dallo storico.
+            // prendo l'ultimo progress claim con label valorizzata e DIVERSA da quella della
+            // fattura (lo stato successivo): serve a saltare una label errata copiata dalla
+            // fattura (es. "FT 75" scritto per sbaglio come SAL) e mostrare il SAL corretto
+            // inserito dopo, evitando l'inutile "FT 75 -> FT 75".
             if($r['en_status']=="invoice emitted" || $r['en_status']=="invoice payed") {
+                $escLabel = addslashes((string)$r['de_label']);
                 $sqlSal = "SELECT de_label FROM ".DB_PREFIX.$tabStorico."
                     WHERE ".$chiaveFk."='".(int)$r['id']."' AND en_status='progress claim'
+                    AND de_label IS NOT NULL AND TRIM(de_label)<>'' AND de_label<>'".$escLabel."'
                     ORDER BY dt_modifica DESC LIMIT 1";
                 $sal = execute_scalar($sqlSal);
                 if($sal!==null && trim($sal)!=="") {
                     $label = htmlspecialchars($sal)." &rarr; ".$label;
                 }
+            }
+            // matita: apre il dialog di modifica del ricavo/costo
+            if($canEdit) {
+                $label .= " <span class='icon-pencil rcr-edit' data-metric='".$metric."' data-id='".(int)$r['id']."' title='{Edit}'></span>";
             }
             $voci[] = $label;
         }
@@ -190,6 +203,106 @@ class ReportCostiRicavi {
             $out .= "<div class='rcr-pop-row'>".$v.$plus."</div>";
         }
         return $out;
+    }
+
+    // Costruisce il frammento-form (per il dialog) di un ricavo (metric=ric) o di un costo
+    // (metric=forn). $id vuoto = inserimento (prefill job/mese); $id valorizzato = modifica
+    // (valori letti dal record). Campi identici a tsricavi/tscosti (i costi hanno in piu' il
+    // fornitore). Ritorna "0" se l'utente non e' admin/superadmin.
+    function getFormImporto($metric, $id="", $job="", $ym="") {
+        global $session;
+        if(!in_array($session->get("idprofilo"), array(20,999999))) return "0";
+
+        $isRicavi = ($metric=="ric");
+        $tabella  = $isRicavi ? "ts_ricavi" : "ts_costi";
+        $chiaveId = $isRicavi ? "id_ricavo" : "id_costo";
+
+        $arStati = array(
+            "estimate"=>"{Estimate}",
+            "progress claim"=>"{Progress claim}",
+            "invoice emitted"=>"{Invoice emitted}",
+            "invoice payed"=>"{Invoice paid}"
+        );
+
+        if($id!=="" && (int)$id>0) {
+            // modifica: leggo i valori correnti dal record
+            $dati = execute_row("SELECT * FROM ".DB_PREFIX.$tabella." WHERE ".$chiaveId."='".(int)$id."'");
+            if(empty($dati)) return "0";
+            $recId      = $dati[$chiaveId];
+            $vCdJob     = $dati["cd_job"];
+            $vFornitore = $isRicavi ? "" : $dati["cd_fornitore"];
+            $vImporto   = $dati["nu_importo"];
+            $vPayment   = $dati["dt_payment"];
+            $vStatus    = $dati["en_status"];
+            $vLabel     = $dati["de_label"];
+        } else {
+            // inserimento: prefill job + primo giorno del mese cliccato
+            $recId      = "";
+            $vCdJob     = (int)$job>0 ? (int)$job : "";
+            $vFornitore = "";
+            $vImporto   = "";
+            $vPayment   = preg_match('/^\d{4}-\d{2}$/', $ym) ? $ym."-01" : date("Y-m-d");
+            $vStatus    = "estimate";
+            $vLabel     = "";
+        }
+
+        //costruzione form (stessi campi/generatori di tsricavi/tscosti)
+        // nome dedicato ("datircr"): il form filtri della pagina si chiama gia' "dati", quindi
+        // un secondo form "dati" nel dialog romperebbe document.dati usato da checkForm().
+        $objform = new form("datircr");
+        // niente <script src=controlloform.js>: sul dialog romperebbe la re-iniezione di
+        // moveCheckFormFunction; i validatori sono gia' caricati dal form filtri della pagina.
+        $objform->pathJsLib = '';
+
+        $cd_job = new autocomplete("cd_job",$vCdJob,100,60,"../tsjob/ajax/jobsearch.php");
+        $cd_job->label="'Commessa'";
+        $cd_job->obbligatorio=1;
+        $objform->addControllo($cd_job);
+
+        // campo fornitore solo per i costi
+        $rigaFornitore = "";
+        if(!$isRicavi) {
+            $cd_fornitore = new optionlist("cd_fornitore",$vFornitore);
+            $cd_fornitore->loadSqlOptions("select id_fornitore, de_nomefornitore from ".DB_PREFIX."ts_fornitori order by de_nomefornitore","id_fornitore","de_nomefornitore","{choose}");
+            $cd_fornitore->label="'Fornitore'";
+            $objform->addControllo($cd_fornitore);
+            $rigaFornitore = "<tr><td valign='top'>{Supplier}</td><td>".$cd_fornitore->gettag()."</td></tr>";
+        }
+
+        $nu_importo = new numerodecimale("nu_importo",$vImporto,12,12,2);
+        $nu_importo->obbligatorio=1;
+        $nu_importo->attributes.=" style='text-align:right'";
+        $nu_importo->label="'Importo'";
+        $objform->addControllo($nu_importo);
+
+        $dt_payment = new data("dt_payment",$vPayment,"aaaa-mm-gg",$objform->name);
+        $objform->addControllo($dt_payment);
+
+        $en_status = new optionlist("en_status",$vStatus,$arStati);
+        $objform->addControllo($en_status);
+
+        $de_label = new testo("de_label",$vLabel,50,50);
+        $de_label->label="'Riferimento'";
+        $objform->addControllo($de_label);
+
+        $hid_id     = new hidden("id",$recId);
+        $hid_op     = new hidden("op","save");
+        $hid_metric = new hidden("metric",$metric);
+
+        $html = loadTemplateAndParse("template/editform.html");
+        $html = str_replace("##STARTFORM##", $objform->startform(), $html);
+        $html = str_replace("##id##", $hid_id->gettag(), $html);
+        $html = str_replace("##op##", $hid_op->gettag(), $html);
+        $html = str_replace("##metric##", $hid_metric->gettag(), $html);
+        $html = str_replace("##RIGA_FORNITORE##", $rigaFornitore, $html);
+        $html = str_replace("##cd_job##", $cd_job->gettag(), $html);
+        $html = str_replace("##nu_importo##", $nu_importo->gettag(), $html);
+        $html = str_replace("##dt_payment##", $dt_payment->gettag(), $html);
+        $html = str_replace("##en_status##", $en_status->gettag(), $html);
+        $html = str_replace("##de_label##", $de_label->gettag(), $html);
+        $html = str_replace("##ENDFORM##", $objform->endform(), $html);
+        $html = str_replace("##MONEY##", MONEY, $html);
+        return $html;
     }
 
 	function getPannello($dati) {
@@ -361,6 +474,9 @@ class ReportCostiRicavi {
 		// colonne selezionate (costo personale / fornitori / ricavi)
 		$col = $this->colonneSelezionate($dati);
 
+		// colonna Delta (= Ric - Forn - Pers): solo quando tutte e 3 le metriche sono selezionate
+		$hasDelta = ($col['ric'] && $col['forn'] && $col['pers']);
+
 		$nomegruppo = "";
 		if($dati['gruppo']=="cd_cliente") {
 			//
@@ -423,6 +539,7 @@ class ReportCostiRicavi {
 				if($col['pers']) $out.="<th class='n'>{Personnel cost}</th>";
 				if($col['forn']) $out.="<th class='n'>{Supplier costs}</th>";
 				if($col['ric'])  $out.="<th class='n'>{Revenues}</th>";
+				if($hasDelta)    $out.="<th class='n delta'>{Delta}</th>";
 				$out.="</tr>";
 
 				$csv="";
@@ -430,6 +547,7 @@ class ReportCostiRicavi {
 				if($col['pers']) $csv.='"'."{Personnel cost}".'"'.";";
 				if($col['forn']) $csv.='"'."{Supplier costs}".'"'.";";
 				if($col['ric'])  $csv.='"'."{Revenues}".'"'.";";
+				if($hasDelta)    $csv.='"'."{Delta}".'"'.";";
 				$csv.="\n";
 				$csv = translateHtml($csv);
 			while($r=$rs->fetch_array()) {
@@ -444,12 +562,17 @@ class ReportCostiRicavi {
 				if($col['pers']) $out.="<td class='n'>".$this->money($r['costo_personale'],0)."</td>";
 				if($col['forn']) $out.="<td class='n'>".$this->money($costo_fornitori,0)."</td>";
 				if($col['ric'])  $out.="<td class='n'>".$this->money($ricavi,0)."</td>";
+				if($hasDelta) {
+					$delta = $ricavi - $costo_fornitori - $r['costo_personale'];
+					$out.="<td class='n delta ".($delta < 0 ? "neg" : "")."'>".$this->money($delta,0)."</td>";
+				}
 				$out.="</tr>";
 
 				$csv.='"'.$r['cliente'].'"'.";";
 				if($col['pers']) $csv.='"'.numberf($r['costo_personale'],2).'"'.";";
 				if($col['forn']) $csv.='"'.numberf($costo_fornitori,2).'"'.";";
 				if($col['ric'])  $csv.='"'.numberf($ricavi,2).'"'.";";
+				if($hasDelta)    $csv.='"'.numberf($ricavi - $costo_fornitori - $r['costo_personale'],2).'"'.";";
 				$csv.="\n";
 
 
@@ -465,12 +588,14 @@ class ReportCostiRicavi {
 				if($col['pers']) $out.="<th class='n'>".$this->money($sommacosto_personale,0)."</th>";
 				if($col['forn']) $out.="<th class='n'>".$this->money($sommacosto_fornitori,0)."</th>";
 				if($col['ric'])  $out.="<th class='n'>".$this->money($sommaricavi,0)."</th>";
+				if($hasDelta)    $out.="<th class='n delta'>".$this->money($sommaricavi - $sommacosto_fornitori - $sommacosto_personale,0)."</th>";
 				$out.="</tr>";
 
 				$csv.=";";
 				if($col['pers']) $csv.='"'.numberf($sommacosto_personale,0).'"'.";";
 				if($col['forn']) $csv.='"'.numberf($sommacosto_fornitori,0).'"'.";";
 				if($col['ric'])  $csv.='"'.numberf($sommaricavi,0).'"'.";";
+				if($hasDelta)    $csv.='"'.numberf($sommaricavi - $sommacosto_fornitori - $sommacosto_personale,0).'"'.";";
 				$csv.="\n";
 				$sommaore = 0;
 				$sommagiorni = 0;
@@ -543,6 +668,7 @@ class ReportCostiRicavi {
 				if($col['pers']) $out.="<th class='n'>{Personnel cost}</th>";
 				if($col['forn']) $out.="<th class='n'>{Supplier costs}</th>";
 				if($col['ric'])  $out.="<th class='n'>{Revenues}</th>";
+				if($hasDelta)    $out.="<th class='n delta'>{Delta}</th>";
 				$out.="</tr>";
 
 				$csv="";
@@ -552,6 +678,7 @@ class ReportCostiRicavi {
 				if($col['pers']) $csv.='"'."{Personnel cost}".'"'.";";
 				if($col['forn']) $csv.='"'."{Supplier costs}".'"'.";";
 				if($col['ric'])  $csv.='"'."{Revenues}".'"'.";";
+				if($hasDelta)    $csv.='"'."{Delta}".'"'.";";
 				$csv.="\n";
 				$csv = translateHtml($csv);
 			while($r=$rs->fetch_array()) {
@@ -568,6 +695,10 @@ class ReportCostiRicavi {
 				if($col['pers']) $out.="<td class='n'>".$this->money($r['costo_personale'],2)."</td>";
 				if($col['forn']) $out.="<td class='n'>".$this->money($costo_fornitori,2)."</td>";
 				if($col['ric'])  $out.="<td class='n'>".$this->money($ricavi,2)."</td>";
+				if($hasDelta) {
+					$delta = $ricavi - $costo_fornitori - $r['costo_personale'];
+					$out.="<td class='n delta ".($delta < 0 ? "neg" : "")."'>".$this->money($delta,2)."</td>";
+				}
 				$out.="</tr>";
 
 
@@ -577,6 +708,7 @@ class ReportCostiRicavi {
 				if($col['pers']) $csv.='"'.numberf($r['costo_personale'],2).'"'.";";
 				if($col['forn']) $csv.='"'.numberf($costo_fornitori,2).'"'.";";
 				if($col['ric'])  $csv.='"'.numberf($ricavi,2).'"'.";";
+				if($hasDelta)    $csv.='"'.numberf($ricavi - $costo_fornitori - $r['costo_personale'],2).'"'.";";
 				$csv.="\n";
 
 
@@ -595,6 +727,7 @@ class ReportCostiRicavi {
 				if($col['pers']) $out.="<th class='n' >".$this->money($sommacosto_personale,0)."</th>";
 				if($col['forn']) $out.="<th class='n' >".$this->money($sommacosto_fornitori,0)."</th>";
 				if($col['ric'])  $out.="<th class='n' >".$this->money($sommaricavi,0)."</th>";
+				if($hasDelta)    $out.="<th class='n delta' >".$this->money($sommaricavi - $sommacosto_fornitori - $sommacosto_personale,0)."</th>";
 				$out.="</tr>";
 
 				$csv.=";";
@@ -603,6 +736,7 @@ class ReportCostiRicavi {
 				if($col['pers']) $csv.='"'.numberf($sommacosto_personale,0).'"'.";";
 				if($col['forn']) $csv.='"'.numberf($sommacosto_fornitori,0).'"'.";";
 				if($col['ric'])  $csv.='"'.numberf($sommaricavi,0).'"'.";";
+				if($hasDelta)    $csv.='"'.numberf($sommaricavi - $sommacosto_fornitori - $sommacosto_personale,0).'"'.";";
 				$csv.="\n";
 				$sommaore = 0;
 				$sommagiorni = 0;
@@ -612,7 +746,7 @@ class ReportCostiRicavi {
 
 		} elseif($dati['gruppo']=="std") {
 			//
-			// standard visualization
+			// standard visualization x mesi
 			//
 			$nomegruppo = "std";
 			$sql="SELECT DISTINCT d.id_job,e.de_nomecliente AS cliente, d.de_nomejob AS commessa, d.de_codice
@@ -670,11 +804,16 @@ class ReportCostiRicavi {
 			if($col['ric'])  $metrics['ric']  = "{Ric}";
 			if($col['forn']) $metrics['forn'] = "{Forn}";
 			if($col['pers']) $metrics['pers'] = "{Pers}";
+			// Delta (= Ric - Forn - Pers) come 4a metrica, solo se tutte e 3 selezionate
+			if($hasDelta)    $metrics['delta'] = "{Delta}";
 			$nMetrics = count($metrics);
 
 			// mappe importi memorizzati per mese (id_job => YYYY-MM => tot)
 			$mapForn = $col['forn'] ? $this->mappaImporti("ts_costi",  $dati, "mese") : array();
 			$mapRic  = $col['ric']  ? $this->mappaImporti("ts_ricavi", $dati, "mese") : array();
+
+			// celle vuote cliccabili per l'inserimento: solo per admin/superadmin
+			$canEdit = in_array($session->get("idprofilo"), array(20,999999));
 
 			// elenco mesi ordinati
 			$mesi = array();
@@ -690,12 +829,13 @@ class ReportCostiRicavi {
 			}
 
 			if($nMetrics <= 1) {
-				// una sola metrica: header a riga singola (come in precedenza)
+				// una sola metrica: header a riga singola (come in precedenza) + colonna Totale
 				$out ="<tr>";
 				$out.="<th>{Code}</th>";
 				$out.="<th>{Client}</th>";
 				$out.="<th>{Job}</th>";
 				foreach($mesi as $mese) $out.="<th class='n'>".$mese['label']."</th>";
+				$out.="<th class='n total'>{Total}</th>";
 				$out.="</tr>";
 
 				$csv ="";
@@ -703,19 +843,22 @@ class ReportCostiRicavi {
 				$csv.='"'."{Client}".'"'.";";
 				$csv.='"'."{Job}".'"'.";";
 				foreach($mesi as $mese) $csv.='"'.$mese['label'].'"'.";";
+				$csv.='"'."{Total}".'"'.";";
 				$csv.="\n";
 			} else {
-				// piu metriche: header a due righe (mese in colspan, metriche sotto)
+				// piu metriche: header a due righe (mese in colspan, metriche sotto) + gruppo Totale
 				$out ="<tr>";
 				$out.="<th rowspan='2'>{Code}</th>";
 				$out.="<th rowspan='2'>{Client}</th>";
 				$out.="<th rowspan='2'>{Job}</th>";
 				foreach($mesi as $mese) $out.="<th class='n mese' colspan='".$nMetrics."'>".$mese['label']."</th>";
+				$out.="<th class='n total' colspan='".$nMetrics."'>{Total}</th>";
 				$out.="</tr>";
 				$out.="<tr>";
 				foreach($mesi as $mese) foreach($metrics as $mk=> $mlabel) {
 					$out.="<th class='n ".$mk."'>".$mlabel."</th>";
 				}
+				foreach($metrics as $mk=> $mlabel) $out.="<th class='n total ".$mk."'>".$mlabel."</th>";
 				$out.="</tr>";
 
 				$csv ="";
@@ -723,6 +866,7 @@ class ReportCostiRicavi {
 				$csv.='"'."{Client}".'"'.";";
 				$csv.='"'."{Job}".'"'.";";
 				foreach($mesi as $mese) foreach($metrics as $mlabel) $csv.='"'.$mese['label'].' - '.$mlabel.'"'.";";
+				foreach($metrics as $mlabel) $csv.='"'."{Total}".' - '.$mlabel.'"'.";";
 				$csv.="\n";
 			}
 			$csv = translateHtml($csv);
@@ -767,23 +911,42 @@ class ReportCostiRicavi {
 				$csv.='"'.$r['cliente'].'"'.";";
 				$csv.='"'.$r['commessa'].'"'.";";
 
+				$rowTot = array('ric'=>0,'forn'=>0,'pers'=>0,'delta'=>0);
 				foreach($mesi as $mese) {
 					$ym = $mese['key'];
+					// valori base del mese (servono anche a calcolare il Delta e i totali di riga)
+					$vRic  = isset($mapRic[$id_job][$ym])  ? (float)$mapRic[$id_job][$ym]  : 0;
+					$vForn = isset($mapForn[$id_job][$ym]) ? (float)$mapForn[$id_job][$ym] : 0;
+					$vPers = isset($fieldsAr[$ym])         ? (float)$fieldsAr[$ym]         : 0;
+					$rowTot['ric'] += $vRic; $rowTot['forn'] += $vForn; $rowTot['pers'] += $vPers;
 					foreach($metrics as $mk=>$mlabel) {
-						if($mk=='pers')     $val = isset($fieldsAr[$ym]) ? $fieldsAr[$ym] : 0;
-						elseif($mk=='forn') $val = isset($mapForn[$id_job][$ym]) ? $mapForn[$id_job][$ym] : 0;
-						else                $val = isset($mapRic[$id_job][$ym])  ? $mapRic[$id_job][$ym]  : 0;
-						// celle con importo != 0: cliccabili per il dettaglio (popup via ajax)
+						if($mk=='pers')     $val = $vPers;
+						elseif($mk=='forn') $val = $vForn;
+						elseif($mk=='ric')  $val = $vRic;
+						else                $val = $vRic - $vForn - $vPers; // delta
+						// celle con importo != 0: cliccabili per il dettaglio (popup via ajax).
+						// il Delta e' derivato: mai cliccabile.
 						$cls = "n ".$mk;
 						$data = "";
-						if(round((float)$val,0) != 0) {
+						if($mk!='delta' && round((float)$val,0) != 0) {
 							$cls .= " rcr-cell";
 							$data = " data-metric='".$mk."' data-job='".$id_job."' data-ym='".$ym."'"
 								." data-stato='".htmlspecialchars(isset($dati['stato'])?$dati['stato']:"all")."'";
+						} elseif($mk!='delta' && $canEdit && ($mk=='ric' || $mk=='forn')) {
+							// cella vuota (ricavo/costo): cliccabile per inserire un nuovo record nel mese
+							$cls .= " rcr-empty";
+							$data = " data-metric='".$mk."' data-job='".$id_job."' data-ym='".$ym."'";
 						}
+						if ($mk=='delta' && $val < 0 ) $cls .= " neg";
 						$out.="<td class='".$cls."'".$data.">".$this->money($val,0)."</td>";
 						$csv.='"'.numberf($val,2).'"'.";";
 					}
+				}
+				// colonna Totale di riga (somma sui mesi); non cliccabile
+				$rowTot['delta'] = $rowTot['ric'] - $rowTot['forn'] - $rowTot['pers'];
+				foreach($metrics as $mk=>$mlabel) {
+					$out.="<td class='n total ".$mk."'>".$this->money($rowTot[$mk],0)."</td>";
+					$csv.='"'.numberf($rowTot[$mk],2).'"'.";";
 				}
 				$out.="</tr>";
 				$csv.="\n";
