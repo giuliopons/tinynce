@@ -146,6 +146,12 @@ class ReportCostiRicavi {
             $label = ($r['de_label']!=="" && $r['de_label']!==null)
                 ? htmlspecialchars($r['de_label'])
                 : $this->labelStato($r['en_status']);
+			$prelabel = "";
+			if ($tabella=="ts_costi") {
+				$prelabel = execute_scalar("SELECT de_nomefornitore FROM ".DB_PREFIX."ts_fornitori WHERE id_fornitore=(SELECT cd_fornitore FROM ".DB_PREFIX."ts_costi WHERE id_costo='".$r['id']."')","");
+				if($prelabel!=="") $prelabel = $prelabel.": ";	
+			}
+			
             // per le fatture, mostro anche l'ultimo SAL (progress claim) dallo storico.
             // prendo l'ultimo progress claim con label valorizzata e DIVERSA da quella della
             // fattura (lo stato successivo): serve a saltare una label errata copiata dalla
@@ -166,7 +172,7 @@ class ReportCostiRicavi {
             if($canEdit) {
                 $label .= " <span class='icon-pencil rcr-edit' data-metric='".$metric."' data-id='".(int)$r['id']."' title='{Edit}'></span>";
             }
-            $voci[] = $label;
+            $voci[] = $prelabel.$label;
         }
         return $this->renderVoci($voci);
     }
