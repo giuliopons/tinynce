@@ -1,4 +1,4 @@
-# THIS PROJECT - Framewotk | Timy
+# THIS PROJECT - Framework | Timy
 
 ## Project Overview
 
@@ -225,3 +225,9 @@ Template for new installs: `pons-settings-install.php`.
 - **Test in Italian context** — primary language is Italian; string labels go in both `it.lang.txt` and `en.lang.txt`
 - **Gitignored files:** `pons-settings.php`, `data/logs/*`, `data/dbimg/*`, `src/vendor/*`, `src/assets/*`, `src/lib/*`
 - This branch (`splunkphp`) excludes AlertManager, Timy, AdAdmin, and CMS components — do not add them back
+
+## Deployment
+
+This installation is on my PC and it is the dev environment.
+The deployment in production is made with ftp by hand.
+Even if there is a deploy script, the deploy should be done on the server of the client manually.
