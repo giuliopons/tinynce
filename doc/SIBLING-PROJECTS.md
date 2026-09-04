@@ -50,8 +50,6 @@ found by reading each project's own (pre-sync) `CLAUDE.md`. They should self-res
 any project once it runs `copiacore.php` again (after migrating its own content per the
 section above) — until then, treat them as still-open discrepancies for these projects.
 
-## Known discrepancies between projects (verified by reading their respective CLAUDE.md files)
-
 - **i18n**: `rockit_ambiente` and `timy` describe lang files as tab-separated; the actual
   content (both in this core repo and in `timynce`) is instead quoted CSV — see
   [I18N.md](I18N.md). Likely stale documentation in those two projects after a format
@@ -65,6 +63,8 @@ section above) — until then, treat them as still-open discrepancies for these 
   branch that excludes AlertManager/Timy/AdAdmin/CMS — legacy branch terminology, no longer
   relevant now that core/newsletter/timesheet live in separate repositories.
 
-When opening one of these child projects, it's worth checking whether its CLAUDE.md is
-aligned with what's described here before trusting its "core" sections blindly (stack, DB,
-templates): this repo (`framework-core`) is the source of truth for the shared part.
+When opening one of these three child projects, check first whether it already has a
+`THIS-PROJECT.md` and a freshly re-synced `CLAUDE.md` (see above) — if so, its `CLAUDE.md`
+is no longer the place to look for project-specific info, `THIS-PROJECT.md` is. If it still
+has its old, pre-sync `CLAUDE.md`, treat the discrepancies above as live and this repo
+(`framework-core`) as the source of truth for the shared part.
