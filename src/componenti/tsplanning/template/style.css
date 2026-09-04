@@ -18,6 +18,9 @@
 @media only screen and (max-width: 768px) {
     .job, .people {width:400vw;}
     .panel2 h1 {display:none}
+    .todolabel { 
+        font-size:1rem; white-space:break-spaces
+    }
 }
 
 .people:first-child,
@@ -242,54 +245,27 @@
     background: #fefefe;
 }
 
-
 @media only screen and (min-width: 769px) {
-
-
-    .job.fixed:first-child .todolabel span.day, .job.fixed:first-child .todo:first-child .user-container:first-child span.day {position:fixed;top:5rem;width:15.6%!important;background:#fff;z-index:10;height:4rem;}
-    .job.fixed:first-child .todolabel span.day {width:9.35%!important}
-    .job.fixed .day-is-0 .day {left:20.55%;}
-    .job.fixed .day-is-1 .day {left:36.16%;}
-    .job.fixed .day-is-2 .day {left:51.80%;}
-    .job.fixed .day-is-3 .day {left:67.44%;}
-    .job.fixed .day-is-4 .day {left:83.05%}
-    .job.fixed .day-is-5 .day {left:85%}
-    .job.fixed .day-is-6 .day {left:85%}
-
-    .people.fixed:first-child .todo:first-child .user-container:first-child span.day {position:fixed;top:5rem;width:14.95%!important;background:#fff;z-index:10;height:4rem;}
-    .people.fixed .day-is-0 .day {left:9.9%;}
-    .people.fixed .day-is-1 .day {left:24.9%;}
-    .people.fixed .day-is-2 .day {left:39.9%;}
-    .people.fixed .day-is-3 .day {left:54.9%;}
-    .people.fixed .day-is-4 .day {left:69.9%}
-    .people.fixed .day-is-5 .day {left:85%}
-    .people.fixed .day-is-6 .day {left:85%}
-
-
-
-   
-    .contract job.fixed:first-child .todolabel span.day, .contract .job.fixed:first-child .todo:first-child .user-container:first-child span.day {position:fixed;top:5rem;width:13.4%!important;background:#fff;z-index:10;height:4rem;}
-    .contract .job.fixed:first-child .todolabel span.day {width:8%!important}
-    .contract .job.fixed .day-is-0 .day {left:17.88%;}
-    .contract .job.fixed .day-is-1 .day {left:31.31%;}
-    .contract .job.fixed .day-is-2 .day {left:44.73%;}
-    .contract .job.fixed .day-is-3 .day {left:58.17%;}
-    .contract .job.fixed .day-is-4 .day {left:71.59%}
-    .contract .job.fixed .day-is-5 .day {left:85%}
-    .contract .job.fixed .day-is-6 .day {left:85%}
-
-    .contract.people.fixed:first-child .todo:first-child .user-container:first-child span.day {position:fixed;top:5rem;width:14.95%!important;background:#fff;z-index:10;height:4rem;}
-    .contract.people.fixed .day-is-0 .day {left:9.9%;}
-    .contract.people.fixed .day-is-1 .day {left:24.9%;}
-    .contract.people.fixed .day-is-2 .day {left:39.9%;}
-    .contract.people.fixed .day-is-3 .day {left:54.9%;}
-    .contract.people.fixed .day-is-4 .day {left:69.9%}
-    .contract.people.fixed .day-is-5 .day {left:85%}
-    .contract.people.fixed .day-is-6 .day {left:85%}
     
-
-
+    .job.fixed {
+        --menusize: 0rem;
+    }
+    .contract .job.fixed {
+        --menusize: 17rem;
+    }
+    .job.fixed {
+        position:fixed;
+        top: 5rem;
+        left: 1.8rem;
+        width: calc(100vw - var(--menusize) - 4rem);
+        z-index: 101;
+        border:0;
+    }
+    .job.fixed .day { height: 4rem; }
+    .job.fixed * { background: #fff!important; border:0}
+    
 }
+
 
 
 

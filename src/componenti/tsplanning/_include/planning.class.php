@@ -626,7 +626,7 @@ class Planning {
             order by de_codice";
 
         $rs = $conn->query($sql) or trigger_error($conn->error." ".$sql);
-        $o = "";
+        $o = ""; $fixed = "";
         $daynames = false;
         while($row = $rs->fetch_array()) {
             
@@ -654,10 +654,10 @@ class Planning {
                             // todo details
                             $o.="<div class='tododetails' style='background-color:" . $this->bgColor($row2['id_todo']) . ";'>";
                                 $o.="<div class='todolabel'>";
-                                if(!$daynames) {
-                                    $command = "showTodoPopUp(0,0 , '".$monday."')";
-                                    $o.="<span class='day' onclick=\"".$command."\">{Task}</span>";
-                                 }
+                                // if(!$daynames) {
+                                //     $command = "showTodoPopUp(0,0 , '".$monday."')";
+                                //     $o.="<span class='day' onclick=\"".$command."\">{Task}</span>";
+                                //  }
                                  $o.="<a onclick=\"showTodoPopUp(".$row2['id_todo'].",0 , '".$monday."')\">" . nl2br($row2['de_label'])."</a></div>";
                             $o.="</div>";
 
@@ -677,10 +677,10 @@ class Planning {
                                     $sql4 = "select * from ".DB_PREFIX."ts_planning  where cd_todo='{$row2['id_todo']}' and cd_user='{$row3['cd_user']}' and dt_date='$data'";
                                     $rs4 = $conn->query($sql4) or trigger_error($conn->error." ".$sql4);
                                     $o.="<div class='day-user day-is-{$i}' data-date='$data'>";
-                                    if(!$daynames) {
-                                        $command = "showAllInOne( 0, 0, '{$data}', 0, 0 )";
-                                        $o.="<span class='day' onclick=\"".$command."\">" . $this->dayname($data) . "</span>";
-                                    }
+                                    // if(!$daynames) {
+                                    //     $command = "showAllInOne( 0, 0, '{$data}', 0, 0 )";
+                                    //     $o.="<span class='day' onclick=\"".$command."\">" . $this->dayname($data) . "</span>";
+                                    // }
                                     if($rs4->num_rows == 0) {
                                         $command = "showAllInOne( {$row2['id_todo']}, {$row3['cd_user']}, '{$data}', 0, 0 )";
                                         $o.="<div class='nome' onclick=\"".$command."\"></div>";
@@ -693,8 +693,8 @@ class Planning {
                                     $o.="</div>";
                                     
                                 }   
-                                $daynames = true; 
-                                $o.="</div>";
+                                $o.="</div>"; // user-container
+                                // $daynames = true; 
                             }
                             if($i==0) {
                                 // handle empty line
@@ -702,25 +702,60 @@ class Planning {
                                 for($i=0;$i<7;$i++) {
                                     $data = date("Y-m-d", strtotime('+'.$i.' day', strtotime($monday)));
                                     $o.="<div class='day-user day-is-{$i}' data-date='$data'>";
-                                    if(!$daynames) {
-                                        $command = "showAllInOne( 0, 0, '{$data}', 0, 0 )";
-                                        $o.="<span class='day' onclick=\"".$command."\">" . $this->dayname($data) . "</span>";
-                                    }
+                                    // if(!$daynames) {
+                                    //     $command = "showAllInOne( 0, 0, '{$data}', 0, 0 )";
+                                    //     $o.="<span class='day' onclick=\"".$command."\">" . $this->dayname($data) . "</span>";
+                                    // }
                                     $command = "showAllInOne( {$row2['id_todo']}, 0, '{$data}', 0, 0)";
                                     $o.="<div class='nome' onclick=\"".$command."\"></div></div>";
                                 }
-                                $daynames = true;
-                                $o.="</div>";
+                                $o.="</div>"; // user-container
+                                // $daynames = true;
                             }
-                            $o.="</div>";
+                            $o.="</div>"; // days-container
 
-                        $o.="</div>";
+                        $o.="</div>"; // todo
                     }
-                $o.="</div>";
-            $o.="</div>";
+                $o.="</div>"; // todo-container
+            $o.="</div>"; // job
         }
+
+        $fixed = "
+        <div class=\"job tofix\">
+                <div class=\"jobdetails\">
+                    <div class=\"code\"><a></a></div>
+                    <div class=\"name\"></div>
+                </div>
+                <div class=\"todo-container\">
+                    <div class=\"todo\">
+                        <div class=\"tododetails\">
+                            <div class=\"todolabel\">
+                                <span class=\"day\" onclick=\"showTodoPopUp(0,0 , '".$monday."')\">Attività</span>
+                                <a></a>
+                            </div>
+                        </div>
+                        <div class=\"days-container\">
+                            <div class=\"user-container\">
         
-        return $o;        
+        ";
+        for($i=0;$i<7;$i++) {   
+            $data = date("Y-m-d", strtotime('+'.$i.' day', strtotime($monday)));
+            $fixed .= "<div class='day-user day-is-{$i}' data-date='$data'>";
+            $command = "showAllInOne( 0, 0, '{$data}', 0, 0 )";
+            $fixed .= "<span class='day' onclick=\"".$command."\">" . $this->dayname($data) . "</span>";
+            // $fixed .= "<div class='nome' onclick=\"".$command."\"></div>";
+            $fixed .= "</div>";   
+        }
+        $fixed .=  "    
+                        </div> <!-- user-container -->
+                    </div> <!-- days-container -->
+                </div> <!-- todo -->
+            </div> <!-- todo-container -->
+        </div> <!-- job -->
+        ";
+
+
+        return $o != "" ? $fixed . $o : "";        
 
     }
 
