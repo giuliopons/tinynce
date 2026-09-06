@@ -909,7 +909,7 @@ class ReportCostiRicavi {
 	
 		if (isset($params["download_csv"]) && $params["download_csv"]==true) {
 			$csv_converted = base64_encode(  mb_convert_encoding($csv, 'ISO-8859-1', 'UTF-8') );
-			$csv="<br><a download='report-".$nomegruppo."-".date("Y-m-d").".csv' href=\"data:application/octet-stream;charset=utf-16le;base64,".$csv_converted."\" class=\"btn\">{Download CSV}</a>";
+			$csv="<a id='download-report' download='report-".$nomegruppo."-".date("Y-m-d").".csv' href=\"data:application/octet-stream;charset=utf-16le;base64,".$csv_converted."\" class=\"btn\">{Download CSV}</a>";
 		} else {
 			$csv = "";
 		}
