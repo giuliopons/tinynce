@@ -129,6 +129,37 @@
 		@media only screen and (min-width: 768px) {
 			/*  visualizzazione "tall" per recuperare righe */
 
+
+			/* intestazione sticky: resta visibile scrollando in verticale dentro
+			.grigliacontainer, e scorre normalmente con lo scroll orizzontale (solo
+			"top" e' fissato, non "left") cosi' le colonne restano allineate.
+			table.griglia ha di suo overflow:hidden (per l'angolo arrotondato), ma un
+			overflow diverso da visible tra il th e il vero antenato scrollabile rompe
+			position:sticky: lo neutralizziamo solo su #report e ricreiamo l'angolo
+			arrotondato direttamente sulle celle d'angolo. */
+			body.tall .griglia {
+				overflow: visible;
+			}
+			body.tall .griglia tr:first-child th:first-child {
+				border-top-left-radius: .5rem;
+			}
+			body.tall .griglia tr:first-child th:last-child {
+				border-top-right-radius: .5rem;
+			}
+			/* sticky sull'intero thead (non sui singoli th): nel report "std" il thead
+			contiene gia' due righe (mese + metriche) correttamente impilate dal
+			layout naturale della tabella, comprese le celle rowspan=2 che le
+			attraversano entrambe. Cosi' l'intero blocco si sposta come un'unita'
+			sola, senza dover calcolare/indovinare l'altezza della prima riga per
+			posizionare la seconda. */
+			body.tall .griglia thead {
+				position: sticky;
+				top: 0;
+				z-index: 2;
+			}
+
+
+
 			body.tall .titlecontainer {
 				display:none
 			}
@@ -140,6 +171,29 @@
 			}
 			body.tall .filters .field select {
 				max-width: 10vw;
+			}
+
+			/* la griglia puo' avere moltissime righe: la teniamo in un riquadro alto
+			   quanto lo spazio residuo del viewport (sotto la barra filtri), con scroll
+			   proprio, cosi' la sua scrollbar orizzontale resta sempre visibile in fondo
+			   al riquadro invece di finire in fondo a una pagina lunghissima. */
+			body.tall {
+				height: 100vh;
+				overflow: hidden;
+				display: flex;
+				flex-direction: column;
+			}
+			body.tall .corpo {
+				flex: 1 1 auto;
+				min-height: 0;
+				display: flex;
+				flex-direction: column;
+				overflow: hidden;
+			}
+			body.tall .corpo .grigliacontainer {
+				flex: 1 1 auto;
+				min-height: 0;
+				overflow: auto !important;
 			}
 		}
 
