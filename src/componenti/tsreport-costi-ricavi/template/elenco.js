@@ -29,12 +29,6 @@ jQuery(document).ready(function($){
 	$('#submit').on("click",function(e){
 		e.preventDefault();
 		var check = true;
-		if( !$('input[name="col_pers"]').is(':checked')
-			&& !$('input[name="col_forn"]').is(':checked')
-			&& !$('input[name="col_ric"]').is(':checked') ) {
-			check = false;
-			alert(_e('Select at least one column'));
-		}
 		if($('#gruppo').val()=='worked') {
 			if(!(parseInt($('#cliente').val()) > 0) ) {
 				check = false;

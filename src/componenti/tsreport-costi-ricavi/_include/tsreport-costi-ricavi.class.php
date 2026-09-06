@@ -1,6 +1,6 @@
 <?php
 /*
-	gestione reportistica timesheet
+	gestione reportistica costi e ricavi
 */
 
 class ReportCostiRicavi {
@@ -29,19 +29,6 @@ class ReportCostiRicavi {
     function money($val, $dec=0) {
         if(round((float)$val, $dec) == 0) return "<span style='color:#bbb'>-</span>";
         return numberf($val,$dec)."<span style='color:#bbb'>".MONEY."</span>";
-    }
-
-    // Colonne selezionate: alla prima apertura (op non impostato) tutte attive;
-    // in ricerca valgono solo le checkbox effettivamente inviate. Fallback: personale.
-    function colonneSelezionate($dati) {
-        $firstLoad = !isset($dati['op']);
-        $col = array(
-            'pers' => $firstLoad ? true : ((isset($dati['col_pers']) && $dati['col_pers']=='1')),
-            'forn' => $firstLoad ? true : ((isset($dati['col_forn']) && $dati['col_forn']=='1')),
-            'ric'  => $firstLoad ? true : ((isset($dati['col_ric'])  && $dati['col_ric'] =='1')),
-        );
-        if(!$col['pers'] && !$col['forn'] && !$col['ric']) $col['pers'] = true;
-        return $col;
     }
 
     // Soglia stato importi -> elenco di en_status inclusi (cumulativo).
@@ -425,21 +412,6 @@ class ReportCostiRicavi {
 
 			$op = new hidden("op","cerca");
 
-			//------------------------------------------------
-			// checkbox selezione colonne (costo personale / fornitori / ricavi)
-			$col = $this->colonneSelezionate($dati);
-
-			$cbPers = new checkbox("col_pers","1",$col['pers']);
-			$cbPers->avideo = "{Personnel cost}";
-			$cbForn = new checkbox("col_forn","1",$col['forn']);
-			$cbForn->avideo = "{Supplier costs}";
-			$cbRic  = new checkbox("col_ric","1",$col['ric']);
-			$cbRic->avideo  = "{Revenues}";
-
-			$colonne  = "<span style='margin-right:1rem;white-space:nowrap'>".$cbPers->gettag()."</span>";
-			$colonne .= "<span style='margin-right:1rem;white-space:nowrap'>".$cbForn->gettag()."</span>";
-			$colonne .= "<span style='margin-right:1rem;white-space:nowrap'>".$cbRic->gettag()."</span>";
-
 			$html = loadTemplateAndParse ("template/elenco.html");
 
 			$html = str_replace("##STARTFORM##", $objform->startform(), $html);
@@ -448,7 +420,6 @@ class ReportCostiRicavi {
 			$html = str_replace("##job##", $job->gettag(), $html);
 			$html = str_replace("##gruppo##", $gruppo->gettag(), $html);
 			$html = str_replace("##stato##", $stato->gettag(), $html);
-			$html = str_replace("##colonne##", $colonne, $html);
 			$html = str_replace("##dal##", $dal->gettag(), $html);
 			$html = str_replace("##al##", $al->gettag(), $html);
 			$html = str_replace("##gestore##", $this->gestore, $html);
@@ -476,12 +447,6 @@ class ReportCostiRicavi {
 		// $job= getVarSetting('JOB_NON_ATTRIBUIBILE');
 
 		$report_print = "";
-
-		// colonne selezionate (costo personale / fornitori / ricavi)
-		$col = $this->colonneSelezionate($dati);
-
-		// colonna Delta (= Ric - Forn - Pers): solo quando tutte e 3 le metriche sono selezionate
-		$hasDelta = ($col['ric'] && $col['forn'] && $col['pers']);
 
 		$nomegruppo = "";
 		if($dati['gruppo']=="cd_cliente") {
@@ -522,8 +487,8 @@ class ReportCostiRicavi {
 			$sql = str_replace("#altriwhere#",$altriwhere,$sql);
 
 			// mappe importi memorizzati (per id_cliente)
-			$mapForn = $col['forn'] ? $this->mappaImporti("ts_costi",  $dati, "cliente") : array();
-			$mapRic  = $col['ric']  ? $this->mappaImporti("ts_ricavi", $dati, "cliente") : array();
+			$mapForn = $this->mappaImporti("ts_costi",  $dati, "cliente");
+			$mapRic  = $this->mappaImporti("ts_ricavi", $dati, "cliente");
 
 			$rs = $conn->query($sql) or die($conn->error." SQL = ".$sql);
 			$out = "";
@@ -540,22 +505,22 @@ class ReportCostiRicavi {
 			$header = "";
 			$c = 0;
 			$sommatutteore = 0;
-				$out="<tr>";
-				$out.="<th>{Client}</th>";
-				if($col['pers']) $out.="<th class='n'>{Personnel cost}</th>";
-				if($col['forn']) $out.="<th class='n'>{Supplier costs}</th>";
-				if($col['ric'])  $out.="<th class='n'>{Revenues}</th>";
-				if($hasDelta)    $out.="<th class='n delta'>{Delta}</th>";
-				$out.="</tr>";
+			$out="<thead><tr>";
+			$out.="<th>{Client}</th>";
+			$out.="<th class='n'>{Personnel cost}</th>";
+			$out.="<th class='n'>{Supplier costs}</th>";
+			$out.="<th class='n'>{Revenues}</th>";
+			$out.="<th class='n delta'>{Delta}</th>";
+			$out.="</tr></thead><tbody>";
 
-				$csv="";
-				$csv.='"'."{Client}".'"'.";";
-				if($col['pers']) $csv.='"'."{Personnel cost}".'"'.";";
-				if($col['forn']) $csv.='"'."{Supplier costs}".'"'.";";
-				if($col['ric'])  $csv.='"'."{Revenues}".'"'.";";
-				if($hasDelta)    $csv.='"'."{Delta}".'"'.";";
-				$csv.="\n";
-				$csv = translateHtml($csv);
+			$csv="";
+			$csv.='"'."{Client}".'"'.";";
+			$csv.='"'."{Personnel cost}".'"'.";";
+			$csv.='"'."{Supplier costs}".'"'.";";
+			$csv.='"'."{Revenues}".'"'.";";
+			$csv.='"'."{Delta}".'"'.";";
+			$csv.="\n";
+			$csv = translateHtml($csv);
 			while($r=$rs->fetch_array()) {
 
 				$costo_fornitori = isset($mapForn[$r['id_cliente']]) ? $mapForn[$r['id_cliente']] : 0;
@@ -565,20 +530,18 @@ class ReportCostiRicavi {
 
 				$out.="<tr>";
 				$out.="<td>".$r['cliente']."</td>";
-				if($col['pers']) $out.="<td class='n'>".$this->money($r['costo_personale'],0)."</td>";
-				if($col['forn']) $out.="<td class='n'>".$this->money($costo_fornitori,0)."</td>";
-				if($col['ric'])  $out.="<td class='n'>".$this->money($ricavi,0)."</td>";
-				if($hasDelta) {
-					$delta = $ricavi - $costo_fornitori - $r['costo_personale'];
-					$out.="<td class='n delta ".($delta < 0 ? "neg" : "")."'>".$this->money($delta,0)."</td>";
-				}
+				$out.="<td class='n'>".$this->money($r['costo_personale'],0)."</td>";
+				$out.="<td class='n'>".$this->money($costo_fornitori,0)."</td>";
+				$out.="<td class='n'>".$this->money($ricavi,0)."</td>";
+				$delta = $ricavi - $costo_fornitori - $r['costo_personale'];
+				$out.="<td class='n delta ".($delta < 0 ? "neg" : "")."'>".$this->money($delta,0)."</td>";
 				$out.="</tr>";
 
 				$csv.='"'.$r['cliente'].'"'.";";
-				if($col['pers']) $csv.='"'.numberf($r['costo_personale'],2).'"'.";";
-				if($col['forn']) $csv.='"'.numberf($costo_fornitori,2).'"'.";";
-				if($col['ric'])  $csv.='"'.numberf($ricavi,2).'"'.";";
-				if($hasDelta)    $csv.='"'.numberf($ricavi - $costo_fornitori - $r['costo_personale'],2).'"'.";";
+				$csv.='"'.numberf($r['costo_personale'],2).'"'.";";
+				$csv.='"'.numberf($costo_fornitori,2).'"'.";";
+				$csv.='"'.numberf($ricavi,2).'"'.";";
+				$csv.='"'.numberf($ricavi - $costo_fornitori - $r['costo_personale'],2).'"'.";";
 				$csv.="\n";
 
 
@@ -587,21 +550,23 @@ class ReportCostiRicavi {
 				$sommaricavi+= $ricavi;
 				$c++;
 			}
+			
+			$out.="</tbody>";
 			if($c>0) {
-				$out.="<tr>";
+				$out.="<tfoot><tr>";
 
 				$out.="<th class='n'>&nbsp;</th>";
-				if($col['pers']) $out.="<th class='n'>".$this->money($sommacosto_personale,0)."</th>";
-				if($col['forn']) $out.="<th class='n'>".$this->money($sommacosto_fornitori,0)."</th>";
-				if($col['ric'])  $out.="<th class='n'>".$this->money($sommaricavi,0)."</th>";
-				if($hasDelta)    $out.="<th class='n delta'>".$this->money($sommaricavi - $sommacosto_fornitori - $sommacosto_personale,0)."</th>";
-				$out.="</tr>";
+				$out.="<th class='n'>".$this->money($sommacosto_personale,0)."</th>";
+				$out.="<th class='n'>".$this->money($sommacosto_fornitori,0)."</th>";
+				$out.="<th class='n'>".$this->money($sommaricavi,0)."</th>";
+				$out.="<th class='n delta'>".$this->money($sommaricavi - $sommacosto_fornitori - $sommacosto_personale,0)."</th>";
+				$out.="</tr></tfoot>";
 
 				$csv.=";";
-				if($col['pers']) $csv.='"'.numberf($sommacosto_personale,0).'"'.";";
-				if($col['forn']) $csv.='"'.numberf($sommacosto_fornitori,0).'"'.";";
-				if($col['ric'])  $csv.='"'.numberf($sommaricavi,0).'"'.";";
-				if($hasDelta)    $csv.='"'.numberf($sommaricavi - $sommacosto_fornitori - $sommacosto_personale,0).'"'.";";
+				$csv.='"'.numberf($sommacosto_personale,0).'"'.";";
+				$csv.='"'.numberf($sommacosto_fornitori,0).'"'.";";
+				$csv.='"'.numberf($sommaricavi,0).'"'.";";
+				$csv.='"'.numberf($sommaricavi - $sommacosto_fornitori - $sommacosto_personale,0).'"'.";";
 				$csv.="\n";
 				$sommaore = 0;
 				$sommagiorni = 0;
@@ -650,8 +615,8 @@ class ReportCostiRicavi {
 			$sql = str_replace("#altriwhere#",$altriwhere,$sql);
 
 			// mappe importi memorizzati (per id_job)
-			$mapForn = $col['forn'] ? $this->mappaImporti("ts_costi",  $dati, "job") : array();
-			$mapRic  = $col['ric']  ? $this->mappaImporti("ts_ricavi", $dati, "job") : array();
+			$mapForn = $this->mappaImporti("ts_costi",  $dati, "job");
+			$mapRic  = $this->mappaImporti("ts_ricavi", $dati, "job");
 
 			$rs = $conn->query($sql) or trigger_error($conn->error." ".$sql);
 			$out = "";
@@ -667,24 +632,24 @@ class ReportCostiRicavi {
 			$header = "";
 			$c = 0;
 			$sommatutteore = 0;
-				$out="<tr>";
+				$out="<thead><tr>";
 				$out.="<th>{Code}</th>";
 				$out.="<th>{Client}</th>";
 				$out.="<th>{Job}</th>";
-				if($col['pers']) $out.="<th class='n'>{Personnel cost}</th>";
-				if($col['forn']) $out.="<th class='n'>{Supplier costs}</th>";
-				if($col['ric'])  $out.="<th class='n'>{Revenues}</th>";
-				if($hasDelta)    $out.="<th class='n delta'>{Delta}</th>";
-				$out.="</tr>";
+				$out.="<th class='n'>{Personnel cost}</th>";
+				$out.="<th class='n'>{Supplier costs}</th>";
+				$out.="<th class='n'>{Revenues}</th>";
+				$out.="<th class='n delta'>{Delta}</th>";
+				$out.="</tr></thead><tbody>";
 
 				$csv="";
 				$csv.='"'."{Code}".'"'.";";
 				$csv.='"'."{Client}".'"'.";";
 				$csv.='"'."{Job}".'"'.";";
-				if($col['pers']) $csv.='"'."{Personnel cost}".'"'.";";
-				if($col['forn']) $csv.='"'."{Supplier costs}".'"'.";";
-				if($col['ric'])  $csv.='"'."{Revenues}".'"'.";";
-				if($hasDelta)    $csv.='"'."{Delta}".'"'.";";
+				$csv.='"'."{Personnel cost}".'"'.";";
+				$csv.='"'."{Supplier costs}".'"'.";";
+				$csv.='"'."{Revenues}".'"'.";";
+				$csv.='"'."{Delta}".'"'.";";
 				$csv.="\n";
 				$csv = translateHtml($csv);
 			while($r=$rs->fetch_array()) {
@@ -698,23 +663,21 @@ class ReportCostiRicavi {
 				$out.="<td style='white-space:nowrap'>".$r['de_codice']."</td>";
 				$out.="<td>".$r['cliente']."</td>";
 				$out.="<td>".$r['commessa']."</td>";
-				if($col['pers']) $out.="<td class='n'>".$this->money($r['costo_personale'],2)."</td>";
-				if($col['forn']) $out.="<td class='n'>".$this->money($costo_fornitori,2)."</td>";
-				if($col['ric'])  $out.="<td class='n'>".$this->money($ricavi,2)."</td>";
-				if($hasDelta) {
-					$delta = $ricavi - $costo_fornitori - $r['costo_personale'];
-					$out.="<td class='n delta ".($delta < 0 ? "neg" : "")."'>".$this->money($delta,2)."</td>";
-				}
+				$out.="<td class='n'>".$this->money($r['costo_personale'],2)."</td>";
+				$out.="<td class='n'>".$this->money($costo_fornitori,2)."</td>";
+				$out.="<td class='n'>".$this->money($ricavi,2)."</td>";
+				$delta = $ricavi - $costo_fornitori - $r['costo_personale'];
+				$out.="<td class='n delta ".($delta < 0 ? "neg" : "")."'>".$this->money($delta,2)."</td>";
 				$out.="</tr>";
 
 
 				$csv.='"'.$r['de_codice'].'"'.";";
 				$csv.='"'.$r['cliente'].'"'.";";
 				$csv.='"'.$r['commessa'].'"'.";";
-				if($col['pers']) $csv.='"'.numberf($r['costo_personale'],2).'"'.";";
-				if($col['forn']) $csv.='"'.numberf($costo_fornitori,2).'"'.";";
-				if($col['ric'])  $csv.='"'.numberf($ricavi,2).'"'.";";
-				if($hasDelta)    $csv.='"'.numberf($ricavi - $costo_fornitori - $r['costo_personale'],2).'"'.";";
+				$csv.='"'.numberf($r['costo_personale'],2).'"'.";";
+				$csv.='"'.numberf($costo_fornitori,2).'"'.";";
+				$csv.='"'.numberf($ricavi,2).'"'.";";
+				$csv.='"'.numberf($ricavi - $costo_fornitori - $r['costo_personale'],2).'"'.";";
 				$csv.="\n";
 
 
@@ -724,25 +687,26 @@ class ReportCostiRicavi {
 				$sommaricavi+= $ricavi;
 				$c++;
 			}
+			$out.="</tbody>";
 			if($c>0) {
-				$out.="<tr>";
+				$out.="<tfoot><tr>";
 
 				$out.="<th class='n' >&nbsp;</th>";
 				$out.="<th class='n' >&nbsp;</th>";
 				$out.="<th class='n' >&nbsp;</th>";
-				if($col['pers']) $out.="<th class='n' >".$this->money($sommacosto_personale,0)."</th>";
-				if($col['forn']) $out.="<th class='n' >".$this->money($sommacosto_fornitori,0)."</th>";
-				if($col['ric'])  $out.="<th class='n' >".$this->money($sommaricavi,0)."</th>";
-				if($hasDelta)    $out.="<th class='n delta' >".$this->money($sommaricavi - $sommacosto_fornitori - $sommacosto_personale,0)."</th>";
-				$out.="</tr>";
+				$out.="<th class='n' >".$this->money($sommacosto_personale,0)."</th>";
+				$out.="<th class='n' >".$this->money($sommacosto_fornitori,0)."</th>";
+				$out.="<th class='n' >".$this->money($sommaricavi,0)."</th>";
+				$out.="<th class='n delta' >".$this->money($sommaricavi - $sommacosto_fornitori - $sommacosto_personale,0)."</th>";
+				$out.="</tr></tfoot>";
 
 				$csv.=";";
 				$csv.=";";
 				$csv.=";";
-				if($col['pers']) $csv.='"'.numberf($sommacosto_personale,0).'"'.";";
-				if($col['forn']) $csv.='"'.numberf($sommacosto_fornitori,0).'"'.";";
-				if($col['ric'])  $csv.='"'.numberf($sommaricavi,0).'"'.";";
-				if($hasDelta)    $csv.='"'.numberf($sommaricavi - $sommacosto_fornitori - $sommacosto_personale,0).'"'.";";
+				$csv.='"'.numberf($sommacosto_personale,0).'"'.";";
+				$csv.='"'.numberf($sommacosto_fornitori,0).'"'.";";
+				$csv.='"'.numberf($sommaricavi,0).'"'.";";
+				$csv.='"'.numberf($sommaricavi - $sommacosto_fornitori - $sommacosto_personale,0).'"'.";";
 				$csv.="\n";
 				$sommaore = 0;
 				$sommagiorni = 0;
@@ -805,18 +769,13 @@ class ReportCostiRicavi {
 			$d0 = strtotime($dati['dal']);
 			$year = date("Y", $d0);
 
-			// metriche selezionate (ordine fisso) con label breve
-			$metrics = array();
-			if($col['ric'])  $metrics['ric']  = "{Ric}";
-			if($col['forn']) $metrics['forn'] = "{Forn}";
-			if($col['pers']) $metrics['pers'] = "{Pers}";
-			// Delta (= Ric - Forn - Pers) come 4a metrica, solo se tutte e 3 selezionate
-			if($hasDelta)    $metrics['delta'] = "{Delta}";
+			// metriche mostrate (ordine fisso) con label breve; Delta = Ric - Forn - Pers
+			$metrics = array('ric'=>"{Ric}", 'forn'=>"{Forn}", 'pers'=>"{Pers}", 'delta'=>"{Delta}");
 			$nMetrics = count($metrics);
 
 			// mappe importi memorizzati per mese (id_job => YYYY-MM => tot)
-			$mapForn = $col['forn'] ? $this->mappaImporti("ts_costi",  $dati, "mese") : array();
-			$mapRic  = $col['ric']  ? $this->mappaImporti("ts_ricavi", $dati, "mese") : array();
+			$mapForn = $this->mappaImporti("ts_costi",  $dati, "mese");
+			$mapRic  = $this->mappaImporti("ts_ricavi", $dati, "mese");
 
 			// celle vuote cliccabili per l'inserimento: solo per admin/superadmin
 			$canEdit = in_array($session->get("idprofilo"), array(20,999999));
@@ -834,75 +793,54 @@ class ReportCostiRicavi {
 				$year = "";
 			}
 
-			if($nMetrics <= 1) {
-				// una sola metrica: header a riga singola (come in precedenza) + colonna Totale
-				$out ="<tr>";
-				$out.="<th>{Code}</th>";
-				$out.="<th>{Client}</th>";
-				$out.="<th>{Job}</th>";
-				foreach($mesi as $mese) $out.="<th class='n'>".$mese['label']."</th>";
-				$out.="<th class='n total'>{Total}</th>";
-				$out.="</tr>";
-
-				$csv ="";
-				$csv.='"'."{Code}".'"'.";";
-				$csv.='"'."{Client}".'"'.";";
-				$csv.='"'."{Job}".'"'.";";
-				foreach($mesi as $mese) $csv.='"'.$mese['label'].'"'.";";
-				$csv.='"'."{Total}".'"'.";";
-				$csv.="\n";
-			} else {
-				// piu metriche: header a due righe (mese in colspan, metriche sotto) + gruppo Totale
-				$out ="<tr>";
-				$out.="<th rowspan='2'>{Code}</th>";
-				$out.="<th rowspan='2'>{Client}</th>";
-				$out.="<th rowspan='2'>{Job}</th>";
-				foreach($mesi as $mese) $out.="<th class='n mese' colspan='".$nMetrics."'>".$mese['label']."</th>";
-				$out.="<th class='n total' colspan='".$nMetrics."'>{Total}</th>";
-				$out.="</tr>";
-				$out.="<tr>";
-				foreach($mesi as $mese) foreach($metrics as $mk=> $mlabel) {
-					$out.="<th class='n ".$mk."'>".$mlabel."</th>";
-				}
-				foreach($metrics as $mk=> $mlabel) $out.="<th class='n total ".$mk."'>".$mlabel."</th>";
-				$out.="</tr>";
-
-				$csv ="";
-				$csv.='"'."{Code}".'"'.";";
-				$csv.='"'."{Client}".'"'.";";
-				$csv.='"'."{Job}".'"'.";";
-				foreach($mesi as $mese) foreach($metrics as $mlabel) $csv.='"'.$mese['label'].' - '.$mlabel.'"'.";";
-				foreach($metrics as $mlabel) $csv.='"'."{Total}".' - '.$mlabel.'"'.";";
-				$csv.="\n";
+			// header a due righe (mese in colspan, metriche sotto) + gruppo Totale
+			$out ="<thead><tr>";
+			$out.="<th rowspan='2'>{Code}</th>";
+			$out.="<th rowspan='2'>{Client}</th>";
+			$out.="<th rowspan='2'>{Job}</th>";
+			foreach($mesi as $mese) $out.="<th class='n mese' colspan='".$nMetrics."'>".$mese['label']."</th>";
+			$out.="<th class='n total' colspan='".$nMetrics."'>{Total}</th>";
+			$out.="</tr>";
+			$out.="<tr>";
+			foreach($mesi as $mese) foreach($metrics as $mk=> $mlabel) {
+				$out.="<th class='n ".$mk."'>".$mlabel."</th>";
 			}
+			foreach($metrics as $mk=> $mlabel) $out.="<th class='n total ".$mk."'>".$mlabel."</th>";
+			$out.="</tr></thead><tbody>";
+
+			$csv ="";
+			$csv.='"'."{Code}".'"'.";";
+			$csv.='"'."{Client}".'"'.";";
+			$csv.='"'."{Job}".'"'.";";
+			foreach($mesi as $mese) foreach($metrics as $mlabel) $csv.='"'.$mese['label'].' - '.$mlabel.'"'.";";
+			foreach($metrics as $mlabel) $csv.='"'."{Total}".' - '.$mlabel.'"'.";";
+			$csv.="\n";
 			$csv = translateHtml($csv);
 
 			while($r=$rs->fetch_array()) {
 
-				// costo personale per mese (sub-query) solo se la metrica e selezionata
+				// costo personale per mese (sub-query)
 				$r['costo_personale'] = 0;
 				foreach ($fieldsAr as $k=>$v) $fieldsAr[$k] = 0;
 
-				if($col['pers']) {
-					$altriwhere = "";
-					if($dati['dal']) $altriwhere.=" and c.dt_giorno>='".$dati['dal']."' ";
-					if($dati['al'])  $altriwhere.=" and c.dt_giorno<='".$dati['al']."' ";
+				$altriwhere = "";
+				if($dati['dal']) $altriwhere.=" and c.dt_giorno>='".$dati['dal']."' ";
+				if($dati['al'])  $altriwhere.=" and c.dt_giorno<='".$dati['al']."' ";
 
-					$sqlm = "SELECT CONCAT(YEAR(c.dt_giorno),'-',LPAD(MONTH(c.dt_giorno),2,'00')) as m,
-						SUM(CASE WHEN AC.nu_cost IS NOT NULL
-							THEN AC.nu_cost*c.nu_ore
-							ELSE u.nu_costo*c.nu_ore
-						END) AS costo_personale
-						FROM ".DB_PREFIX."ts_ore c
-						inner join ".DB_PREFIX."frw_extrauserdata u on u.cd_user = c.cd_utente
-						LEFT OUTER JOIN ".DB_PREFIX."ts_users_annual_cost AC on AC.cd_user=c.cd_utente and AC.nu_anno=YEAR(c.dt_giorno)
-						WHERE cd_job = '{$r['id_job']}' ".$altriwhere." group by m";
+				$sqlm = "SELECT CONCAT(YEAR(c.dt_giorno),'-',LPAD(MONTH(c.dt_giorno),2,'00')) as m,
+					SUM(CASE WHEN AC.nu_cost IS NOT NULL
+						THEN AC.nu_cost*c.nu_ore
+						ELSE u.nu_costo*c.nu_ore
+					END) AS costo_personale
+					FROM ".DB_PREFIX."ts_ore c
+					inner join ".DB_PREFIX."frw_extrauserdata u on u.cd_user = c.cd_utente
+					LEFT OUTER JOIN ".DB_PREFIX."ts_users_annual_cost AC on AC.cd_user=c.cd_utente and AC.nu_anno=YEAR(c.dt_giorno)
+					WHERE cd_job = '{$r['id_job']}' ".$altriwhere." group by m";
 
-					$rsm = $conn->query($sqlm) or die($conn->error);
-					while($rm = $rsm->fetch_array()) {
-						$r['costo_personale'] += $rm['costo_personale'];
-						if(isset($fieldsAr[$rm['m']])) $fieldsAr[$rm['m']] = $rm['costo_personale'];
-					}
+				$rsm = $conn->query($sqlm) or die($conn->error);
+				while($rm = $rsm->fetch_array()) {
+					$r['costo_personale'] += $rm['costo_personale'];
+					if(isset($fieldsAr[$rm['m']])) $fieldsAr[$rm['m']] = $rm['costo_personale'];
 				}
 
 				$id_job = $r['id_job'];
@@ -960,6 +898,8 @@ class ReportCostiRicavi {
 				$sommacosto_personale+= $r['costo_personale'];
 				$c++;
 			}
+
+			$out.="</tbody>";
 
 		} else {
 

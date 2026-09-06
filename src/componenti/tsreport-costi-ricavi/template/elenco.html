@@ -88,19 +88,6 @@
 		td.rcr-empty { cursor: pointer; }
 		td.rcr-empty:hover { background: #f3f7ff; }
 
-		.field .switch input[type=checkbox] {
-			min-width: 4rem!important;
-		}
-		.field .switch label + span {
-			display:inline;
-			flex-shrink:1!important;
-			margin-left:0;
-		}
-		.field span.colonne {
-			display:flex;
-			gap: 1rem;
-		}
-
 		@media print {
 
 			body,
@@ -137,12 +124,31 @@
 			.rcr-edit { display: none !important; }
 			td.rcr-empty { cursor: default; background: transparent !important; }
 		}
+
+
+		@media only screen and (min-width: 768px) {
+			/*  visualizzazione "tall" per recuperare righe */
+
+			body.tall .titlecontainer {
+				display:none
+			}
+			body.tall .panel2 {
+				padding-top:0;
+			}
+			body.tall .filters .field {
+				max-width:20%;
+			}
+			body.tall .filters .field select {
+				max-width: 10vw;
+			}
+		}
+
 	</style>
 
 
 </head>
 
-<body>
+<body class="##classes## tall">
 
 	<div class="panel2">
 		<div class="titlecontainer">
@@ -176,7 +182,7 @@
 				<span class="icon-filter">##job##</span>
 			</div>
 
-			<div class="field empty" style="flex:1 1 100%;"></div>
+			<!-- <div class="field empty" style="flex:1 1 100%;"></div> -->
 
 			<div class="field">
 				<label>{Tipo di report}:</label>
@@ -186,11 +192,6 @@
 			<div class="field">
 				<label>{Status}:</label>
 				<span class="icon-filter">##stato##</span>
-			</div>
-
-			<div class="field">
-				<label>{Columns}:<span data-rel="Scegli quale colonne inserire nel report" class="icon-help-circled"></span></label>
-				<span class="colonne">##colonne##</span>
 			</div>
 
 			<div class="field">
